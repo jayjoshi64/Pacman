@@ -128,7 +128,7 @@ function plot(game)
 			var from = obj.node;
 			
 			plot.total++;
-			$(".total").html(plot.total);
+			//$(".total").html(plot.total);
 					
 			
 			//alert(this.total);
@@ -136,14 +136,13 @@ function plot(game)
 		
 			if(from!=null)
 			{
-			
-		
+			/*
 			this.high=svg.rect(blocksize,blocksize).move(to.x*blocksize,to.y*blocksize).fill("yellow");
 			this.highfr=svg.rect(blocksize,blocksize).move(from.x*blocksize,from.y*blocksize).fill("cyan");
-			//alert(node.x+":"+node.y + "   ["+distance+"]  ["+JSON.stringify(plot.operations)+"]");
+			alert(node.x+":"+node.y + "   ["+distance+"]  ["+JSON.stringify(plot.operations)+"]");
 			this.high.remove();
 			this.highfr.remove();
-		
+			*/
 				if(distance < plot.memory[to.y][to.x].node[node.y][node.x].dist)
 				{
 					plot.memory[to.y][to.x].node[node.y][node.x].dist = distance;
@@ -172,7 +171,7 @@ function plot(game)
 				else
 				{
 					plot.error++;
-					$(".error").html(plot.error);
+					//$(".error").html(plot.error);
 					
 				}
 			}
@@ -202,10 +201,6 @@ function plot(game)
 						if(!plot.map[newnode.y][newnode.x])
 						{
 							return true;
-						}
-						else
-						{
-							alert(JSON.stringify(newnode));
 						}
 					}
 				}
@@ -284,9 +279,9 @@ function plot(game)
 	
 	this.distance_vector = function()
 	{
-		for(var i=0;i<1;i++)
+		for(var i=0;i<this.height;i++)
 		{
-			for(var j=0;j<1;j++)
+			for(var j=0;j<this.width;j++)
 			{
 				if(this.map[i][j]==false)
 				{
@@ -304,9 +299,9 @@ function plot(game)
 		{
 			for(var j=0;j<this.height;j++)
 			{
-				if(this.memory[i][j].node[0][0].from != null)
+				if(this.memory[0][0].node[i][j].from != null)
 				{
-					str += "("+this.memory[i][j].node[0][0].from.y + ":"+this.memory[i][j].node[0][0].from.x+")";
+					str += "("+this.memory[0][0].node[i][j] .from.y + ":"+this.memory[0][0].node[i][j].from.x+")";
 				}
 				else
 				{
@@ -316,14 +311,13 @@ function plot(game)
 			str+=" \n";
 		}
 		
-		alert(str);
+		//alert(str);
 	
 	}
 	
 	
 	this.load=function()
 	{
-		
 	
 		for(var i=0;i<this.height;i++)
 		{
@@ -346,6 +340,7 @@ function plot(game)
 		}
 	
 	
+		this.distance_vector();
 	
 	
 	for(var i=0;i<this.height;i++)
@@ -373,6 +368,7 @@ function plot(game)
 	}
 	
 	
+	this.game.raone.cpu();
 	
 	}
 	
@@ -461,8 +457,25 @@ function plot(game)
 	
 	
 	
-	this.nevigator = function(raone,pacman)
+	this.navigator = function(raone,pacman)
 	{
+	
+		if(this.memory[raone.location.y][raone.location.x].node[pacman.location.y][pacman.location.x].from==null)
+		{
+			alert("could not find pacman");
+		}
+	
+		var node = JSON.stringify( this.memory[raone.location.y][raone.location.x].node[pacman.location.y][pacman.location.x].from );
+		node = JSON.parse(node);
+		
+		
+		if(node.x == pacman.location.x && node.y == pacman.location.y)
+		{
+			alert("game over");
+			exit();
+		}
+		
+		return(node);
 		
 	
 	}
@@ -667,6 +680,9 @@ function pacman(game)
 		var diff=that.plot.canimove(that.location,that.movedirection,that);
 			that.location.x+=diff.x;
 			that.location.y+=diff.y;
+			
+			
+			
 			that.select.animate(that.time).move((that.location.x)*blocksize,(that.location.y)*blocksize).after(function(){that.time=300;that.animator(that);});
 			if(that.plot.block[that.location.y][that.location.x].taken==false)
 			{
@@ -679,16 +695,26 @@ function pacman(game)
 }
 
 
-function raone(game)
+function raone(location,game)
 {
 	this.game = game;
-	this.map = this.game.plot.map;
+	this.map = this.game.plot;
 	this.target = game.pacman;
-	this.location = {x:game.width,y:game.width};
+	this.location = {x:location.x,y:location.y};
+	this.select=svg.circle(blocksize).x(this.location.x*this.game.blocksize).y(this.location.y*this.game.blocksize).fill("red").stroke("#000");
+		//alert("wow bro");
+	
+	this.cpu = function()
+	{
+		var newnode = this.map.navigator(this,this.target);
+		this.location.x = newnode.x;
+		this.location.y = newnode.y;
+		this.select.animate(300).move((this.location.x)*blocksize,(this.location.y)*blocksize).after(function(){raone.cpu();});
+			
+	}
 	
 	
 	
-
 }
 
 function player()
@@ -735,7 +761,7 @@ this.pacy=config[5][1];
 	
 	this.pacman = new pacman(this);
 	
-	
+	this.raone = new raone({x:8,y:8},this);
 	
 }
 
