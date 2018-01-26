@@ -32,9 +32,12 @@ Pacman movement engine is working perfect :D
   <div class="graph"></div>
 </div>
 
-<div class="score"></div>
-<br>
+
 <div class="total"></div>
+<br>
+<div class="error"></div>
+<br>
+<div class="score"></div>
 
 <script>
 
@@ -50,13 +53,32 @@ function plot(game)
 	this.obst= [];
     this.map= [];
 	this.block=[];
+	
+	this.memory = [];
+	
+	this.total=0;
+	this.error=0;
+	this.wayyer=0;
 	for(var i=0;i<this.height;i++)
 	{
 		this.map[i]=[];
 		this.block[i]=[];
+		this.memory[i]=[];
 		for(var j=0;j<this.width;j++)
 		{
 			this.block[i][j]=null;
+			this.memory[i][j]= {node:[]};
+			
+			
+			for(var k=0;k<this.height;k++)
+			{
+				this.memory[i][j].node[k] = [];
+				for(var z=0;z<this.width;z++)
+				{
+					this.memory[i][j].node[k][z]={dist:9999, from:null,from2:null};
+				}
+			}
+			
 			if((i==2&&j==2) || (i==6&&j==6))
 			{
 				this.map[i][j]=true;
@@ -75,6 +97,9 @@ function plot(game)
 	
 	that=this;
 	
+	
+	
+	
     $.ajax({
         type: "GET",
         url: "data.txt",
@@ -86,8 +111,189 @@ function plot(game)
 	 });
 	 
 	
+	 
+	 this.init_flood = function(node)
+	{
+	
+		
+		var floodme = function(node,distance,to,from)
+		{
+			
+			plot.total++;
+			$(".total").html(plot.total);
+					
+			
+			//alert(this.total);
+			
+		
+			if(from!=null)
+			{
+			this.high=svg.rect(blocksize,blocksize).move(to.x*blocksize,to.y*blocksize).fill("yellow");
+			this.highfr=svg.rect(blocksize,blocksize).move(from.x*blocksize,from.y*blocksize).fill("cyan");
+			alert(node.x+":"+node.y + "   ["+distance+"]  []");
+			this.high.remove();
+			this.highfr.remove();
+		
+				if(distance < plot.memory[to.y][to.x].node[node.y][node.x].dist)
+				{
+					plot.memory[to.y][to.x].node[node.y][node.x].dist = distance;
+					plot.memory[to.y][to.x].node[node.y][node.x].from = from;
+					
+				}
+				else if(distance == plot.memory[to.y][to.x].node[node.y][node.x].dist)
+				{
+					if(plot.memory[to.y][to.x].node[node.y][node.x].from.x != from.x && plot.memory[to.y][to.x].node[node.y][node.x].from.y != from.y)
+					{
+						plot.memory[to.y][to.x].node[node.y][node.x].from2 = from;
+					}
+					return;	
+				
+				}
+				else
+				{
+					plot.error++;
+					$(".error").html(plot.error);
+					return;
+				}
+			}
+			else
+			{
+				plot.memory[to.y][to.x].node[node.y][node.x].dist = distance;
+				plot.memory[to.y][to.x].node[node.y][node.x].from = from;
+					
+			}
+			
+			
+			
+			left(node,distance+1,to);
+			right(node,distance+1,to);
+			up(node,distance+1,to);
+			down(node,distance+1,to);
+			
+		}
+	
+		var check = function(newnode)
+			{
+				
+				if(0<=newnode.x && newnode.x < plot.width)
+				{
+					if(0<=newnode.y && newnode.y < plot.height)
+					{
+						
+						if(!plot.map[newnode.y][newnode.x])
+						{
+							return true;
+						}
+					}
+				}
+				
+				return false;
+				
+			}
+		
+	
+		var left =function(data,distance,node)
+		{
+			var newnode = JSON.stringify(node);
+				newnode = JSON.parse(newnode);
+			
+			newnode.x--;
+			
+			if(check(newnode))
+			{
+				floodme(data,distance,newnode,node);
+			}
+		}
+		var right = function(data,distance,node)
+		{
+			var newnode = JSON.stringify(node);
+				newnode = JSON.parse(newnode);
+			
+			newnode.x++;
+			
+			if(check(newnode))
+			{
+				floodme(data,distance,newnode,node);
+			}
+		}
+		
+		var up = function(data,distance,node)
+		{
+			var newnode = JSON.stringify(node);
+				newnode = JSON.parse(newnode);
+			
+			newnode.y--;
+			
+			if(check(newnode))
+			{
+				floodme(data,distance,newnode,node);
+			}
+		}
+		
+		var down = function(data,distance,node)
+		{
+			var newnode = JSON.stringify(node);
+				newnode = JSON.parse(newnode);
+			
+			newnode.y++;
+			
+			if(check(newnode))
+			{
+				floodme(data,distance,newnode,node);
+			}
+		}
+	
+		
+		//>>>>>>>>  Main of INIT Flood
+	
+		floodme(node,0,node,node);
+	
+	
+	}
+	
+	this.distance_vector = function()
+	{
+		for(var i=0;i<1;i++)
+		{
+			for(var j=0;j<1;j++)
+			{
+				if(this.map[i][j]==false)
+				{
+					var node = {x:j,y:i};
+					// alert("uep");
+					this.init_flood(node);
+				}
+			}
+			
+		}
+		
+		var str="";
+		
+		for(var i=0;i<this.height;i++)
+		{
+			for(var j=0;j<this.height;j++)
+			{
+				if(this.memory[i][j].node[0][0].from != null)
+				{
+					str += "("+this.memory[i][j].node[0][0].from.y + ":"+this.memory[i][j].node[0][0].from.x+")";
+				}
+				else
+				{
+					str+="(+,+)";
+				}
+			}
+			str+=" \n";
+		}
+		
+		alert(str);
+	
+	}
+	
+	
 	this.load=function()
 	{
+		this.distance_vector();
+	
 		for(var i=0;i<this.height;i++)
 		{
 			for(var j=0;j<this.width;j++)
@@ -135,7 +341,10 @@ function plot(game)
 		this.block[this.game.pacman.location.y][this.game.pacman.location.x].select.remove();
 	}
 	
+	
+	
 	}
+	
 	
 
 	this.canimove = function(location,direction,thepacc)
@@ -217,6 +426,18 @@ function plot(game)
 		
 	}
 	
+	
+	
+	
+	
+	this.nevigator = function(raone,pacman)
+	{
+		
+	
+	}
+	
+	
+	
 }
 
 
@@ -227,9 +448,9 @@ function pacman(game)
 	this.plot=this.game.plot;
 	this.paused=false; // not moving
 	this.init=true;
+	this.select=svg.circle(blocksize).x(0).y(0).fill("#ffff00").stroke("#000");
 	this.state=true; //TRUE -> alive   FALSE ->dead
 	this.location = {x:parseInt(this.game.pacx),y:parseInt(this.game.pacy)};
-	this.select=svg.circle(blocksize).x(this.location.x*blocksize).y(this.location.y*blocksize).fill("#ffff00").stroke("#000");
 	//alert(this.location.x + " : "+this.location.y);
 	this.movedirection=0;
 	this.currentdirection=0;
@@ -314,6 +535,7 @@ function pacman(game)
 	
 	$(document).on("keypress",function(e,that=pacman)
 	{
+			
 			that.time=300;
 			var flag=false;
 			//alert(that.print);
@@ -414,13 +636,6 @@ function pacman(game)
 		var diff=that.plot.canimove(that.location,that.movedirection,that);
 			that.location.x+=diff.x;
 			that.location.y+=diff.y;
-			
-			if(that.location.x==that.game.raone.location.x && that.location.y==that.game.raone.location.y)
-			{
-				alert("game over");
-				exit();
-			}
-			
 			that.select.animate(that.time).move((that.location.x)*blocksize,(that.location.y)*blocksize).after(function(){that.time=300;that.animator(that);});
 			if(that.plot.block[that.location.y][that.location.x].taken==false)
 			{
@@ -436,574 +651,11 @@ function pacman(game)
 function raone(game)
 {
 	this.game = game;
-	this.plot=this.game.plot;
-	this.target = this.game.pacman;
-	this.location = {x:this.game.width-1,y:this.game.height-1};
-	this.skip=false;        // if ( one way is found ..  all streigh - line recursion from that point is skipped) check V2.0 to see diffrence :D
-	this.skipx=-1;
-	this.skipy=-1;
-	this.total=0;  			// count of recursion
-
-	this.found=false;		// to check if selective flooding can find or not
-	this.selective=true;  // Selective flooding is on (if true)    //  is off and flooding is done (if false)
-	
-	this.init=true;
-	this.select=svg.circle(blocksize).x(this.location.x*this.game.blocksize).y(this.location.y*this.game.blocksize).fill("red").stroke("#000");
+	this.map = this.game.plot.map;
+	this.target = game.pacman;
+	this.location = {x:game.width,y:game.width};
 	
 	
-	/*
-			WAY
-			----------
-			0 - > Start * Should go to all 4 directions
-			1 - > Left
-			2 - > UP
-			3 - > Right
-			4 - > Down
-			----------
-	*/
-	
-	this.calculatemin = function()
-	{
-		var obj = raone.operations.shift();
-		
-		var node = obj.loc;
-		var stack = JSON.parse(obj.stack);
-		var distance = obj.distance;
-		var way = obj.way;
-		this.total++;
-		/*
-		var waystring="";
-		if(way==1)
-		{
-			waystring="left";
-		}
-		else if(way==2)
-		{
-			waystring="up";
-		}
-		else if(way==3)
-		{
-			waystring="right";
-		}
-		else if(way==4)
-		{
-			waystring="down";
-		}
-		else{
-			waystring="init";
-		}
-		this.high=svg.rect(blocksize,blocksize).move(node.x*blocksize,node.y*blocksize).fill("yellow");
-		alert(node.x+":"+node.y + "   ["+distance+"]  ["+waystring+"]");
-		this.high.remove();
-			*/
-		var flag=false;
-		if(this.memory.dist[node.y][node.x] == 0)
-		{
-			this.memory.dist[node.y][node.x]  = distance + 1;
-			//alert(this.memory.dist[node.y][node.x]+" : "+raone.memory.dist[node.y][node.x])
-			flag=true;
-		}
-		else if(this.memory.dist[node.y][node.x] > distance + 1)
-		{
-		
-			this.memory.dist[node.y][node.x]  = distance + 1;
-			flag=true;
-		
-		}
-		else if(this.memory.dist[node.y][node.x] < distance + 1)
-		{
-			//alert(node.x + " : "+node.y  + " -> " + distance + " (way:"+way+")");
-			
-			return;
-			
-		}
-		else if(this.memory.dist[node.y][node.x] == distance + 1)
-		{
-		
-			
-			var diffx = this.location.x - this.target.location.x;
-			if(diffx < 0)
-			{
-				diffx = diffx * (-1);
-			}
-			var diffy = this.location.y - this.target.location.y;
-			if(diffy < 0)
-			{
-				diffy = diffy * (-1);
-			}
-			
-			
-			
-			if(diffx > diffy)
-			{
-				var tempnode = stack[stack.length - 1];
-				if(tempnode.x - node.x == 1 || tempnode.x - node.x == -1)
-				{
-					flag =false;
-				}
-				else if(tempnode.y - node.y == 1 || tempnode.y - node.y == -1)
-				{
-					flag=true;
-				}
-				else
-				{
-					alert("error : stack(last) : node   - doesnt match");
-				}
-			}
-			else if(diffx < diffy)
-			{
-				var tempnode = stack[stack.length - 1];
-				if(tempnode.x - node.x == 1 || tempnode.x - node.x == -1)
-				{
-					flag =true;
-				}
-				else if(tempnode.y - node.y == 1 || tempnode.y - node.y == -1)
-				{
-					flag=false;
-				}
-				else
-				{
-					alert("error : stack(last) : node   - doesnt match");
-				}
-			}
-			else if(diffx == diffy)
-			{
-				
-				if(Math.floor(Math.random() * 2) == 0)
-				{
-					flag=true;
-				}
-				else
-				{
-					flag=false;
-				}
-			}
-			else
-			{
-				alert("error  inpossible error");
-			}
-		
-		}else
-		{
-			alert("wow");
-		}
-		
-		var newstack = JSON.stringify(stack);
-		newstack = JSON.parse(newstack);
-		
-		//newstack.add(true);
-		//alert(newstack.length);
-		
-		if(flag==true)
-		{
-			
-			newstack.push(node);
-			
-			if(node.x == this.target.location.x && node.y == this.target.location.y)
-			{
-				//alert("done");
-				this.found=true;
-				this.skip=true;
-				this.skipx=node.x;
-				this.skipy=node.y;
-				this.memory.stack=JSON.stringify(newstack);
-				this.memory.stack=JSON.parse(this.memory.stack);
-				return;
-			}
-			
-			
-		//	this.memory.dist[node.y][node.x];
-			var check = function(newnode)
-			{
-				
-				if(0<=newnode.x && newnode.x < raone.game.width)
-				{
-					if(0<=newnode.y && newnode.y < raone.game.height)
-					{
-						
-						if(!raone.game.plot.map[newnode.y][newnode.x])
-						{
-							return true;
-						}
-					}
-				}
-				return false;
-				
-			}
-		
-			var left = function()
-			{
-				var newnode = JSON.stringify(node);
-				newnode = JSON.parse(newnode);
-			
-				
-				newnode.x = newnode.x -1;
-				if(check(newnode))
-				{
-					if(raone.selective==true)
-					{
-						if(raone.location.x > raone.target.location.x)
-						{
-							var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:1};
-							
-							
-							if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
-							{
-								raone.operations.push(newobj);
-							
-							}
-							
-							//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],1);
-						
-						}
-					}
-					else
-					{
-						var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:1};
-						if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
-						{
-							raone.operations.push(newobj);
-							
-						}
-						//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],1);
-					}
-					
-					
-					
-					
-				}
-			}
-			var up = function()
-			{
-				var newnode = JSON.stringify(node);
-				newnode = JSON.parse(newnode);
-			
-				
-				newnode.y = newnode.y -1;
-				
-				if(check(newnode))
-				{
-					if(raone.selective==true)
-					{
-						if(raone.location.y > raone.target.location.y)
-						{
-							var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:2};
-							if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
-							{
-								raone.operations.push(newobj);
-							}
-							
-							//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],2);
-						}
-					}
-					else
-					{
-						var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:2};
-						
-						if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
-							{
-								raone.operations.push(newobj);
-							
-							}
-							
-						//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],2);
-					}
-				}
-			}
-			
-			var right = function()
-			{
-				var newnode = JSON.stringify(node);
-				newnode = JSON.parse(newnode);
-			
-				newnode.x = newnode.x +1;
-				if(check(newnode))
-				{
-					if(raone.selective==true)
-					{
-						if(raone.location.x<raone.target.location.x)
-						{
-							var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:3};
-							
-							if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
-							{
-								raone.operations.push(newobj);
-							}
-							
-							//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],3);
-						}
-					}
-					else
-					{
-						var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:3};
-						
-						if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
-							{
-								raone.operations.push(newobj);
-							
-							}
-							
-						//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],3);
-					
-					}
-				}
-			}
-
-			var down = function()
-			{
-				var newnode = JSON.stringify(node);
-				newnode = JSON.parse(newnode);
-			
-				newnode.y = newnode.y +1;
-				if(check(newnode))
-				{
-					if(raone.selective==true)
-					{
-						if(raone.location.y<raone.target.location.y)
-						{
-							var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:4};
-							
-							if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
-							{
-								raone.operations.push(newobj);
-							
-							}
-							
-							//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],4);
-						}
-					}
-					else
-					{
-						var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:4};
-						if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
-							{
-								raone.operations.push(newobj);
-							
-							}
-							
-						//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],4);
-					}
-				}
-			}
-			
-			
-			
-			
-			if(way==0)
-			{
-				up();
-				if(node.x!=this.skipx && node.y!=this.skipy)
-				{
-						this.skip=false;
-				}
-				if(this.skip==false)
-				{
-					right();
-					down();
-					left();
-				}
-				else
-				{
-					
-				}
-			}
-			else if(way==1)
-			{
-				left();
-				if(node.x!=this.skipx && node.y!=this.skipy)
-				{
-						this.skip=false;
-				}
-				if(this.skip==false)
-				{
-					up();
-					down();
-				}
-				else
-				{
-					
-				}
-			}
-			else if(way==2)
-			{
-				up();
-				if(node.x!=this.skipx && node.y!=this.skipy)
-				{
-						this.skip=false;
-				}
-				if(this.skip==false)
-				{
-					left();
-					right();
-				}
-				else
-				{
-					
-				}
-			}
-			else if(way==3)
-			{
-				right();
-				if(node.x!=this.skipx && node.y!=this.skipy)
-				{
-						this.skip=false;
-				}
-				if(this.skip==false)
-				{
-				up();
-				down();
-				}
-				else
-				{
-					
-				}
-			}
-			else if(way==4)
-			{
-				down();
-				if(node.x!=this.skipx && node.y!=this.skipy)
-				{
-						this.skip=false;
-				}
-				if(this.skip==false)
-				{
-					left();
-					right();
-				}
-				else
-				{
-					
-				}
-			}
-			else
-			{
-				alert("error : unexpected way, should be 0<=way<=4 found :"+JSON.stringify(way));
-			}
-			
-		
-		
-		}
-		
-		if(raone.operations.length>0)
-		{
-			raone.calculatemin();
-		}
-		
-	}
-	
-	
-	this.animator = function(direction)
-	{
-			//alert(that.location.x);
-		var diff=this.plot.canimove(this.location,direction,this);
-			this.location.x+=diff.x;
-			this.location.y+=diff.y;
-			
-			if(this.location.x==this.game.pacman.location.x && this.location.y==this.game.pacman.location.y)
-			{
-				alert("game over");
-				exit();
-			}
-			
-			this.select.animate(300).move((this.location.x)*blocksize,(this.location.y)*blocksize).after(function(){raone.cpu();});
-			
-			/*if(that.plot.block[that.location.y][that.location.x].taken==false)
-			{
-				that.plot.block[that.location.y][that.location.x].taken=true;
-				that.plot.block[that.location.y][that.location.x].select.animate(150).attr({width:0,height:0});
-				that.game.player.incscorebyone();
-			}*/
-	}
-	
-	this.run = function()
-	{
-	
-	
-	}
-	
-	
-	this.cpu = function()
-	{
-	
-		
-			this.init=false;
-			this.memory = {stack:[],dist:null};
-			this.memory.dist = [];
-			
-			
-			this.skip=false;        // if ( one way is found ..  all streigh - line recursion from that point is skipped) check V2.0 to see diffrence :D
-			this.skipx=-1;
-			this.skipy=-1;
-			this.total=0;  			// count of recursion
-
-			this.found=false;		// to check if selective flooding can find or not
-			this.selective=true;  // Selective flooding is on (if true)    //  is off and flooding is done (if false)
-			
-			this.operations = [];
-			
-			for(var i=0;i<this.game.height;i++)
-			{
-				this.memory.dist[i]=[];
-				for(var j=0;j<this.game.width;j++)
-				{
-					this.memory.dist[i][j]=0;
-				}
-			}
-			
-		var obj = {loc:this.location,stack:JSON.stringify(this.memory.stack),distance:this.memory.dist[this.location.y][this.location.x],way:0};
-		
-		this.operations.push(obj);
-		
-		this.calculatemin();
-		
-		if(this.found==false)
-		{
-			//alert("yes");
-			this.selective=false;
-			
-			this.operations.push(obj);
-			
-			this.calculatemin();
-		}
-
-		this.direction=0;
-		if(this.memory.stack[1].x - this.location.x == 1 && this.memory.stack[1].y - this.location.y == 0)
-		{
-			this.direction = 3;
-		}
-		else if(this.memory.stack[1].x - this.location.x == -1 && this.memory.stack[1].y - this.location.y == 0)
-		{
-			this.direction = 1;
-		}
-		else if(this.memory.stack[1].x - this.location.x == 0 && this.memory.stack[1].y - this.location.y == 1)
-		{
-			this.direction = 4;
-		}
-		else if(this.memory.stack[1].x - this.location.x == 0 && this.memory.stack[1].y - this.location.y == -1)
-		{
-			this.direction = 2;
-		}
-		else
-		{
-			alert("error");
-		}
-		this.animator(this.direction);
-		var str="";
-		this.memory.stack.forEach(function(node)
-		{
-			str+="-("+node.x+":"+node.y+")";
-			//this.high=svg.rect(blocksize,blocksize).move(node.x*blocksize,node.y*blocksize).fill("yellow");
-		});
-
-		//alert(this.memory.stack);
-		//alert( " ({total:"+this.total+"})");
-		$(".total").html(str);
-		
-		
-		
-	}
-	
-
 	
 
 }
@@ -1014,7 +666,7 @@ function player()
 	
 	this.incscorebyone = function()
 	{
-			this.score++;
+		this.score++;
 		
 		this.showscore();
 	}
@@ -1052,10 +704,8 @@ this.pacy=config[5][1];
 	
 	this.pacman = new pacman(this);
 	
-	this.raone = new raone(this);
 	
 	
-	this.raone.cpu();
 }
 
 
