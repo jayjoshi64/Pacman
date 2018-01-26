@@ -30,7 +30,7 @@ Pacman movement engine is working perfect :D
 
 </head>
 
-<body>
+<body style="background-color:black;">
 <div  align="center">
   <div class="graph"></div>
 </div>
@@ -107,7 +107,7 @@ function plot_class(game)
 	
 	
 	
-	this.border= svg.rect(this.width*blocksize,this.height*blocksize).fill("#ffffff").stroke("#000");
+	this.border= svg.rect(this.width*blocksize,this.height*blocksize).fill("#000").stroke({color:"blue",width:4});
 	
 	that=this;
 	
@@ -369,7 +369,7 @@ function plot_class(game)
 			if(this.loader[i][j]=="1")
 			{
 				//alert("gotcha");
-				this.block[i][j]=svg.rect(blocksize,blocksize).move(j*blocksize,i*blocksize).fill("#000");
+				this.block[i][j]=svg.rect((7/10)*blocksize,(7/10)*blocksize).move((j+0.15)*blocksize,(i+0.15)*blocksize).fill("black").stroke({color:"blue",width:3});
 			}
 			else if(this.loader[i][j]=="0")
 			{
