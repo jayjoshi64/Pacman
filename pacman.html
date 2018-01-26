@@ -24,6 +24,8 @@ Pacman movement engine is working perfect :D
 	<script src="js/jquery.min.js"></script>
 	<script src="js/jquery.csv.min.js"></script>
 	
+	
+	
 
 </head>
 
@@ -63,6 +65,8 @@ function plot_class(game)
 	this.memory = [];
 	
 	this.operations=[];
+	
+	this.power = [];
 	
 	this.total=0;
 	this.error=0;
@@ -337,6 +341,13 @@ function plot_class(game)
 				else if(this.loader[i][j]=="0")
 				{
 					this.map[i][j]=false;
+					
+					
+				}
+				else if( this.loader[i][j]=="2")
+				{
+					this.map[i][j]=false;
+					this.power.push({x:j,y:i});
 				}
 				else
 				{
@@ -353,15 +364,24 @@ function plot_class(game)
 	{
 		for(var j=0;j<this.width;j++)
 		{
-			if(this.map[i][j]==true)
+			if(this.loader[i][j]=="1")
 			{
 				//alert("gotcha");
 				this.block[i][j]=svg.rect(blocksize,blocksize).move(j*blocksize,i*blocksize).fill("#000");
 			}
-			else
+			else if(this.loader[i][j]=="0")
 			{
-				this.block[i][j]={taken:false,select:null};
-				this.block[i][j].select=svg.rect(pointsize,pointsize).move((j+0.5)*blocksize-(pointsize/2),(i+0.5)*blocksize-(pointsize/2)).fill("#00ffd2");
+				
+					this.block[i][j]={taken:false,select:null,power:false};
+					this.block[i][j].select=svg.rect(pointsize,pointsize).move((j+0.5)*blocksize-(pointsize/2),(i+0.5)*blocksize-(pointsize/2)).fill("#00ffd2");
+			}
+			else if (this.loader[i][j]=="2")
+			{
+					this.block[i][j]={taken:false,select:null,power:true};
+					this.block[i][j].select=svg.rect(pointsize*3,pointsize*3).move((j+0.5)*blocksize-(pointsize*1.5),(i+0.5)*blocksize-(pointsize*1.5)).fill("green");				
+			}
+			else{
+				alert("error, expected 0/1/2 . found : "+this.loader[i][j]);
 			}
 		}
 	}
@@ -374,9 +394,8 @@ function plot_class(game)
 	}
 	
 	
-	this.game.raone[0].cpu();
-	this.game.raone[1].cpu();
-	this.game.raone[2].cpu();
+	
+	this.game.raone.forEach(function(obj){obj.cpu();});
 	
 	}
 	
@@ -802,9 +821,26 @@ function pacman_class(game)
 			that.select.animate(that.time).move((that.location.x)*blocksize,(that.location.y)*blocksize).after(function(){that.time=300;that.animator(that);});
 			if(that.plot.block[that.location.y][that.location.x].taken==false)
 			{
-				that.plot.block[that.location.y][that.location.x].taken=true;
-				that.plot.block[that.location.y][that.location.x].select.animate(150).attr({width:0,height:0});
-				that.game.player.incscorebyone();
+				if(that.plot.block[that.location.y][that.location.x].power==false)
+				{
+					that.plot.block[that.location.y][that.location.x].taken=true;
+					that.plot.block[that.location.y][that.location.x].select.animate(150).attr({width:0,height:0});
+					that.game.player.incscorebyone();
+				}
+				else if (that.plot.block[that.location.y][that.location.x].power==true)
+				{
+					//alert("power up");
+					that.plot.block[that.location.y][that.location.x].taken=true;
+					that.plot.block[that.location.y][that.location.x].select.animate(150).attr({width:0,height:0});
+					
+					
+					//this.
+					
+				}
+				else
+				{
+					alert("error");
+				}
 			}
 	}
 
