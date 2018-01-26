@@ -56,6 +56,8 @@ function plot(game)
 	
 	this.memory = [];
 	
+	this.operations=[];
+	
 	this.total=0;
 	this.error=0;
 	this.wayyer=0;
@@ -116,8 +118,14 @@ function plot(game)
 	{
 	
 		
-		var floodme = function(node,distance,to,from)
+		var floodme = function()
 		{
+			
+			var obj = plot.operations.shift();
+			var node=obj.data;
+			var distance = obj.distance;
+			var to = obj.newnode;
+			var from = obj.node;
 			
 			plot.total++;
 			$(".total").html(plot.total);
@@ -128,9 +136,11 @@ function plot(game)
 		
 			if(from!=null)
 			{
+			
+		
 			this.high=svg.rect(blocksize,blocksize).move(to.x*blocksize,to.y*blocksize).fill("yellow");
 			this.highfr=svg.rect(blocksize,blocksize).move(from.x*blocksize,from.y*blocksize).fill("cyan");
-			alert(node.x+":"+node.y + "   ["+distance+"]  []");
+			//alert(node.x+":"+node.y + "   ["+distance+"]  ["+JSON.stringify(plot.operations)+"]");
 			this.high.remove();
 			this.highfr.remove();
 		
@@ -138,6 +148,16 @@ function plot(game)
 				{
 					plot.memory[to.y][to.x].node[node.y][node.x].dist = distance;
 					plot.memory[to.y][to.x].node[node.y][node.x].from = from;
+			
+					
+			
+					left(node,distance+1,to);
+					right(node,distance+1,to);
+					up(node,distance+1,to);
+					down(node,distance+1,to);
+					
+			
+					
 					
 				}
 				else if(distance == plot.memory[to.y][to.x].node[node.y][node.x].dist)
@@ -146,14 +166,14 @@ function plot(game)
 					{
 						plot.memory[to.y][to.x].node[node.y][node.x].from2 = from;
 					}
-					return;	
+						
 				
 				}
 				else
 				{
 					plot.error++;
 					$(".error").html(plot.error);
-					return;
+					
 				}
 			}
 			else
@@ -164,11 +184,10 @@ function plot(game)
 			}
 			
 			
-			
-			left(node,distance+1,to);
-			right(node,distance+1,to);
-			up(node,distance+1,to);
-			down(node,distance+1,to);
+			if(plot.operations.length>0)
+			{
+				floodme();
+			}
 			
 		}
 	
@@ -183,6 +202,10 @@ function plot(game)
 						if(!plot.map[newnode.y][newnode.x])
 						{
 							return true;
+						}
+						else
+						{
+							alert(JSON.stringify(newnode));
 						}
 					}
 				}
@@ -201,7 +224,8 @@ function plot(game)
 			
 			if(check(newnode))
 			{
-				floodme(data,distance,newnode,node);
+				plot.operations.push({data:data,distance:distance,newnode:newnode,node:node});
+				//floodme(data,distance,newnode,node);
 			}
 		}
 		var right = function(data,distance,node)
@@ -213,7 +237,8 @@ function plot(game)
 			
 			if(check(newnode))
 			{
-				floodme(data,distance,newnode,node);
+				plot.operations.push({data:data,distance:distance,newnode:newnode,node:node});
+				//floodme(data,distance,newnode,node);
 			}
 		}
 		
@@ -226,7 +251,9 @@ function plot(game)
 			
 			if(check(newnode))
 			{
-				floodme(data,distance,newnode,node);
+				plot.operations.push({data:data,distance:distance,newnode:newnode,node:node});
+				
+				//floodme(data,distance,newnode,node);
 			}
 		}
 		
@@ -239,14 +266,18 @@ function plot(game)
 			
 			if(check(newnode))
 			{
-				floodme(data,distance,newnode,node);
+				plot.operations.push({data:data,distance:distance,newnode:newnode,node:node});
+				
+				//floodme(data,distance,newnode,node);
 			}
 		}
 	
 		
 		//>>>>>>>>  Main of INIT Flood
 	
-		floodme(node,0,node,node);
+		plot.operations.push({data:node,distance:0,newnode:node,node:node});
+				
+		floodme();
 	
 	
 	}
@@ -292,7 +323,7 @@ function plot(game)
 	
 	this.load=function()
 	{
-		this.distance_vector();
+		
 	
 		for(var i=0;i<this.height;i++)
 		{
