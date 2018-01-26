@@ -1,0 +1,442 @@
+<!-- 
+This version is for Pacman movement engine
+
+
+DONE .!!!!!
+
+
+Pacman movement engine is working perfect :D
+
+
+:)
+ -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script src="js/svg.js"></script>
+	<script src="js/jquery.min.js"></script>
+	<script src="js/jquery.csv.min.js"></script>
+	
+
+</head>
+
+<body>
+<div  align="center">
+  <div class="graph"></div>
+</div>
+
+<script>
+
+var svg = new SVG(document.querySelector(".graph")).size("100%", 600);
+
+
+
+function plot(size)
+{
+    this.size=size;
+	this.obst= [];
+    this.map= [];
+	this.block=[];
+	for(var i=0;i<this.size;i++)
+	{
+		this.map[i]=[];
+		this.block[i]=[];
+		for(var j=0;j<this.size;j++)
+		{
+			this.block[i][j]=null;
+			if((i==2&&j==2) || (i==6&&j==6))
+			{
+				this.map[i][j]=true;
+				
+			}
+			else
+			{
+			this.map[i][j]=false;
+			}
+		}
+	}
+	
+	
+	
+	this.border= svg.rect(this.size*blocksize,this.size*blocksize).fill("#ffffff").stroke("#000");
+	
+	that=this;
+	
+    $.ajax({
+        type: "GET",
+        url: "data.txt",
+        dataType: "text",
+        success: function(data) {
+			that.loader=$.csv.toArrays(data);
+			that.load();
+		}
+	 });
+	 
+	
+	this.load=function()
+	{
+		for(var i=0;i<this.size;i++)
+	{
+		for(var j=0;j<this.size;j++)
+		{
+			if(this.loader[i][j]=="1")
+			{
+				//alert("gotcha");
+				this.map[i][j]=true;
+			}
+			else if(this.loader[i][j]=="0")
+			{
+				this.map[i][j]=false;
+			}
+			else
+			{
+				alert("error : expected 1/0 FOUND :" + this.loader[i][j]);
+			}
+		}
+	}
+	
+	
+	
+	
+	for(var i=0;i<this.size;i++)
+	{
+		for(var j=0;j<this.size;j++)
+		{
+			if(this.map[i][j]==true)
+			{
+				//alert("gotcha");
+				this.block[i][j]=svg.rect(blocksize,blocksize).move(i*blocksize,j*blocksize).fill("#000");
+			}
+			else
+			{
+				this.block[i][j]=svg.rect(pointsize,pointsize).move((i+0.5)*blocksize-(pointsize/2),(j+0.5)*blocksize-(pointsize/2)).fill("#00ffd2");
+			}
+		}
+	}
+	
+	}
+	
+
+	this.canimove = function(location,direction,thepacc)
+	{
+		
+		var diffx = 0;
+		var diffy = 0;
+		
+		if(direction == 1 )
+		{
+			diffx = -1;
+		}
+		else if(direction == 2)
+		{
+			diffy = -1;
+		}
+		else if(direction == 3)
+		{
+			diffx = 1;
+		}
+		else if(direction == 4)
+		{
+			diffy= 1;
+		}
+		else{
+			alert("wrong direction : " + direction);
+		}
+		
+		var newlocation = {x:location.x+diffx,y:location.y+diffy};
+		
+		
+		
+		if(0<=newlocation.x && newlocation.x < this.size)
+		{
+			if(0<=newlocation.y && newlocation.y < this.size)
+			{
+				
+				if(!this.map[newlocation.x][newlocation.y])
+				{
+					thepacc.paused=false;
+					var diff={x:diffx,y:diffy};
+					thepacc.currentdirection=direction;
+					return diff;
+				}
+			}
+		}
+		
+		
+		var diff={x:0,y:0};
+		if(thepacc.currentdirection != direction)
+		{
+			if(thepacc.paused==false)
+			{
+				//alert("yes");
+				diff=this.canimove(location,thepacc.currentdirection,thepacc);
+			}
+			else
+			{
+				thepacc.currentdirection=direction;
+			}
+		}
+		else
+		{
+			//thepacc.currentdirection=0;
+			thepacc.paused=true;
+			thepacc.select.stop();
+			thepacc.init=true;	
+			//alert("paused");
+		}
+		
+		
+		
+		
+		return diff;
+		
+		
+		
+	}
+	
+}
+
+
+function pacman(plot)
+{
+	this.time=300;
+	this.plot=plot;
+	this.paused=false; // not moving
+	this.init=true;
+	this.select=svg.circle(blocksize).x(0).y(0).fill("#ffff00").stroke("#000");
+	this.state=true; //TRUE -> alive   FALSE ->dead
+	this.location = {x:0,y:0};
+	this.movedirection=0;
+	this.currentdirection=0;
+	
+	//this.print=Math.floor(Math.random()*100);
+	
+	
+	/*this.move=function(e,that=this)
+	{
+		alert(that.print);
+	}*/
+	
+	this.backrun= function(direction)
+	{
+		var pos = {x:0,y:0};
+		pos.x= this.select.x();
+		pos.y= this.select.y();
+		
+		//alert(pos.x + " : "+pos.y);
+		if(direction== 1 || direction == 3 )
+		{
+			//alert( pos.x+" : "+this.plot.size * blocksize);
+			if(this.paused==true)
+			{
+				this.time=300;
+				return;
+			}
+			var diffx = pos.x % blocksize;
+			
+			if(diffx==0)
+			{
+				this.time=1;
+				return;
+			}
+			
+			if(direction == 1)
+			{
+				diffx= blocksize - diffx;
+			}
+			
+			
+			
+			
+			
+			this.time = (300*diffx)/blocksize;
+			if(this.time<0)
+			{
+				this.time = this.time * (-1);
+			}
+		}
+		else if(direction == 2 || direction == 4)
+		{
+			
+			if(this.paused==true)
+			{
+				this.time=300;
+				return;
+			}
+			var diffy = pos.y % blocksize;
+			if(diffy==0)
+			{
+				this.time=1;
+				return;
+			}
+			
+			if(direction == 2)
+			{
+				diffy= blocksize - diffy;
+			}
+			this.time = (300*diffy)/blocksize;
+			if(this.time<0)
+			{
+				this.time=this.time * (-1);
+			}
+		}
+		//alert(this.time);
+		return true;
+	}
+	
+	
+	$(document).on("keypress",function(e,that=pacman)
+	{
+			that.time=300;
+			var flag=false;
+			//alert(that.print);
+			if(e.keyCode==37)
+			{
+				//alert("left");
+				flag=true;
+				if(that.currentdirection==3)
+				{
+					that.backrun(that.movedirection);
+					that.init=true;
+					that.select.stop();
+					
+				}
+				if(that.currentdirection!=1)
+				{
+					that.movedirection=1;
+				}
+		}
+			else if(e.keyCode==38)
+			{
+				//alert("up");
+				flag=true;
+				if(that.currentdirection==4)
+				{
+					that.backrun(that.movedirection);
+					that.init=true;
+					that.select.stop();
+				}
+				if(that.currentdirection!=2)
+				{
+					that.movedirection=2;
+				}
+			}
+			else if(e.keyCode==39)
+			{
+				//alert("right");
+				flag=true;
+				if(that.currentdirection==1)
+				{
+					
+					that.backrun(that.movedirection);
+					that.init=true;
+					that.select.stop();
+					
+				}
+				if(that.currentdirection!=3)
+				{
+					that.movedirection=3;
+				}
+			}
+			else if(e.keyCode==40)
+			{
+				//alert("down");
+				flag=true;
+				if(that.currentdirection==2)
+				{
+					that.backrun(that.movedirection);
+					that.init=true;
+					that.select.stop();
+					
+				}
+				if(that.currentdirection!=4)
+				{
+					that.movedirection=4;
+				}
+			}
+			
+			if(flag==false)
+			{
+				return;
+			}
+			
+			if(that.paused==true)
+			{
+				that.paused=false;
+				that.select.stop();
+				that.init=true;
+			}
+			
+			that.controller();		
+			
+			
+	
+	});
+	
+	this.controller = function()
+	{
+		if(this.init==true)
+		{
+			this.init=false;
+			this.animator(this);
+		}
+		
+	}
+	
+	
+	
+	this.animator = function(that)
+	{
+			
+		var diff=that.plot.canimove(that.location,that.movedirection,that);
+			that.location.x+=diff.x;
+			that.location.y+=diff.y;
+			that.select.animate(that.time).move((that.location.x)*blocksize,(that.location.y)*blocksize).after(function(){that.time=300;that.animator(that);});
+	
+	}
+
+}
+
+
+
+function main()
+{
+var config;
+    $.ajax({
+        type: "GET",
+        url: "config.txt",
+        dataType: "text",
+		async: false,
+        success: function(data) {
+			config=$.csv.toArrays(data);
+		}
+	 });
+
+size=config[0][1];
+blocksize=config[1][1];
+pointsize=config[2][1];
+	
+	this.plot = new plot(this.size);
+	
+	this.pacman = new pacman(this.plot);
+	
+	
+	
+}
+
+
+main();
+</script>
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,239 @@
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+	<script src="js/jquery.min.js"></script>
+	<script src="js/jquery.csv.min.js"></script>
+	<script src="js/svg.js"></script>
+	
+</head>
+<body>
+
+<div class="graph"></div>
+
+<div class="done">
+<button id="submit">Submit</button>
+</div>
+
+<script>
+
+var config;
+    $.ajax({
+        type: "GET",
+        url: "config.txt",
+        dataType: "text",
+		async: false,
+        success: function(data) {
+			config=$.csv.toArrays(data);
+		}
+	 });
+
+width=config[0][1];
+height=config[1][1];
+block=config[2][1];
+
+var upload = [];
+
+
+for(var i=0;i<height;i++)
+{
+	
+	upload[i]= [];
+	for(var j=0;j<width;j++)
+	{
+		upload[i].push(false);
+	}
+}
+creEngine(height,width,block);
+
+$("#submit").on("click",function()
+{
+	uploader();
+});
+		
+//alert(upload.rows[size-1].cols[size-1]);
+
+function uploader()
+{
+	
+	$.ajax({
+          type:           'post',
+          cache:          false,
+          url:            'map_store.php',
+          data:           {data:upload,width:width,height:height},
+		  success: function(result){
+				alert(result);
+		  },
+		  error: function(xhr){
+            alert("An error occured: " + xhr.status + " " + xhr.statusText);
+        }
+      });
+
+
+}
+
+function creEngine(height,width,blocksize)
+{
+	this.old_i=-1;
+	this.old_j=-1;
+	this.new_i=-1;
+	this.new_j=-1;
+	this.shift=false;
+	
+	this.height=height;
+	this.width=width;
+	this.left=0;
+	this.top=0;
+	this.init=true;
+	this.blocksize=blocksize;
+	svg = new SVG(document.querySelector(".graph")).size("100%", 600);
+	this.border=svg.rect(this.width*block,this.height*block).fill("#ffffff").stroke("#000");
+	//this.point= svg.createSVGPoint(); 
+	//alert("ok");
+	this.point={x:0,y:0};
+	this.block={i:0,j:0};
+	this.obst=[];
+	for(var k=0;k<height;k++)
+	{
+		this.obst[k]=[];
+		for(var z=0;z<width;z++)
+		{
+			this.obst[k][z]=null;
+		}
+	}
+	
+	that=this;
+	
+	this.border.click(function(e)
+	{
+		if(that.init==true)
+		{
+			that.init=false;
+			that.left=e.target.getBoundingClientRect().left;
+			that.topz=e.target.getBoundingClientRect().top;
+		}		
+		that.point.x=e.clientX-Math.floor(e.target.getBoundingClientRect().left);
+		that.point.y=e.clientY-Math.floor(e.target.getBoundingClientRect().top);
+		
+		
+		that.block.i=Math.floor(that.point.x/that.blocksize);
+		that.block.j=Math.floor(that.point.y/that.blocksize);
+		
+		that.new_i=that.block.i;
+		that.new_j=that.block.j;
+		
+		if(that.shift==false)
+		{
+			that.putonmap();
+			
+			that.old_i=that.new_i;
+			that.old_j=that.new_j;
+		}
+		else if(that.shift==true)
+		{
+			if(that.block.j==that.old_j)
+			{
+				while(!(that.block.i==that.old_i))
+				{
+					if(that.block.i<that.old_i)
+					{
+						that.putonmap();
+						that.block.i++;
+					}
+					else
+					{	
+						that.putonmap();
+						that.block.i--;
+					}
+				
+				}
+				
+				that.old_i=that.new_i;
+				that.old_j=that.new_j;
+			
+			}
+			if(that.block.i==that.old_i)
+			{
+				while(!(that.block.j==that.old_j))
+				{
+					if(that.block.j<that.old_j)
+					{
+						that.putonmap();
+						that.block.j++;
+					}
+					else
+					{	
+						that.putonmap();
+						that.block.j--;
+					}
+				
+				}
+				
+				that.old_i=that.new_i;
+				that.old_j=that.new_j;
+				
+			}
+			
+			
+		}
+		
+		
+		
+		
+	});
+	
+	this.putonmap = function()
+	{
+		//alert(this.block.i);
+		if(upload[this.block.j][this.block.i]==false)
+			{
+				//alert("yes");
+				upload[this.block.j][this.block.i]=true;
+				this.obst[this.block.j][this.block.i]=svg.rect(this.blocksize,this.blocksize).move(this.block.i*this.blocksize,this.block.j*this.blocksize).fill("#000");
+				
+				that=this;
+				this.obst[this.block.j][this.block.i].click(function(evt){
+				
+					that.point.x=evt.clientX-Math.floor(that.left);
+					that.point.y=evt.clientY-Math.floor(that.topz);
+				
+					that.block.i=Math.floor(that.point.x/that.blocksize);
+					that.block.j=Math.floor(that.point.y/that.blocksize);
+					
+					upload[that.block.j][that.block.i]=false;
+					that.obst[that.block.j][that.block.i].remove();
+					
+			});
+
+			}
+		
+	}
+	
+	$(document).on("keydown",function(ekey)
+	{
+		if(ekey.keyCode==16)
+		{
+			that.shift=true;
+			
+		}		
+	});
+
+$(document).on("keyup",function(ekey)
+	{
+		
+			that.shift=false;
+				
+	});		
+	
+	
+}
+
+
+</script>
+
+</body>
+</html>

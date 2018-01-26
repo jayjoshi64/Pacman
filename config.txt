@@ -1,0 +1,6 @@
+width,17
+height,15
+block,35
+pointsize,5
+pacx,0
+pacy,0
