@@ -33,8 +33,9 @@ Pacman movement engine is working perfect :D
 </div>
 
 <div class="score"></div>
-
+<br>
 <div class="total"></div>
+
 <script>
 
 var svg = new SVG(document.querySelector(".graph")).size("100%", 600);
@@ -437,7 +438,7 @@ function raone(game)
 	this.game = game;
 	this.plot=this.game.plot;
 	this.target = this.game.pacman;
-	this.location = {x:this.game.width-1,y:0};
+	this.location = {x:this.game.width-1,y:this.game.height-1};
 	this.skip=false;        // if ( one way is found ..  all streigh - line recursion from that point is skipped) check V2.0 to see diffrence :D
 	this.skipx=-1;
 	this.skipy=-1;
@@ -461,8 +462,14 @@ function raone(game)
 			----------
 	*/
 	
-	this.calculatemin = function(node,stack,distance,way)
+	this.calculatemin = function()
 	{
+		var obj = raone.operations.shift();
+		
+		var node = obj.loc;
+		var stack = JSON.parse(obj.stack);
+		var distance = obj.distance;
+		var way = obj.way;
 		this.total++;
 		/*
 		var waystring="";
@@ -488,7 +495,7 @@ function raone(game)
 		this.high=svg.rect(blocksize,blocksize).move(node.x*blocksize,node.y*blocksize).fill("yellow");
 		alert(node.x+":"+node.y + "   ["+distance+"]  ["+waystring+"]");
 		this.high.remove();
-		*/
+			*/
 		var flag=false;
 		if(this.memory.dist[node.y][node.x] == 0)
 		{
@@ -637,13 +644,28 @@ function raone(game)
 					{
 						if(raone.location.x > raone.target.location.x)
 						{
-							raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],1);
+							var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:1};
+							
+							
+							if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
+							{
+								raone.operations.push(newobj);
+							
+							}
+							
+							//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],1);
 						
 						}
 					}
 					else
 					{
-						raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],1);
+						var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:1};
+						if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
+						{
+							raone.operations.push(newobj);
+							
+						}
+						//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],1);
 					}
 					
 					
@@ -665,13 +687,26 @@ function raone(game)
 					{
 						if(raone.location.y > raone.target.location.y)
 						{
-							raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],2);
+							var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:2};
+							if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
+							{
+								raone.operations.push(newobj);
+							}
+							
+							//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],2);
 						}
 					}
 					else
 					{
+						var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:2};
 						
-						raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],2);
+						if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
+							{
+								raone.operations.push(newobj);
+							
+							}
+							
+						//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],2);
 					}
 				}
 			}
@@ -688,13 +723,27 @@ function raone(game)
 					{
 						if(raone.location.x<raone.target.location.x)
 						{
-							raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],3);
+							var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:3};
+							
+							if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
+							{
+								raone.operations.push(newobj);
+							}
+							
+							//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],3);
 						}
 					}
 					else
 					{
+						var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:3};
 						
-						raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],3);
+						if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
+							{
+								raone.operations.push(newobj);
+							
+							}
+							
+						//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],3);
 					
 					}
 				}
@@ -712,12 +761,27 @@ function raone(game)
 					{
 						if(raone.location.y<raone.target.location.y)
 						{
-							raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],4);
+							var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:4};
+							
+							if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
+							{
+								raone.operations.push(newobj);
+							
+							}
+							
+							//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],4);
 						}
 					}
 					else
 					{
-						raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],4);
+						var newobj={loc:newnode,stack:JSON.stringify(newstack),distance:raone.memory.dist[node.y][node.x],way:4};
+						if(newnode.x !=raone.operations[raone.operations.length-1].loc.x && newnode.y !=raone.operations[raone.operations.length-1].loc.y)
+							{
+								raone.operations.push(newobj);
+							
+							}
+							
+						//raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],4);
 					}
 				}
 			}
@@ -813,13 +877,17 @@ function raone(game)
 			}
 			else
 			{
-				alert("error : unexpected way, should be 0<=way<=4");
+				alert("error : unexpected way, should be 0<=way<=4 found :"+JSON.stringify(way));
 			}
 			
 		
 		
 		}
 		
+		if(raone.operations.length>0)
+		{
+			raone.calculatemin();
+		}
 		
 	}
 	
@@ -871,6 +939,7 @@ function raone(game)
 			this.found=false;		// to check if selective flooding can find or not
 			this.selective=true;  // Selective flooding is on (if true)    //  is off and flooding is done (if false)
 			
+			this.operations = [];
 			
 			for(var i=0;i<this.game.height;i++)
 			{
@@ -881,15 +950,20 @@ function raone(game)
 				}
 			}
 			
+		var obj = {loc:this.location,stack:JSON.stringify(this.memory.stack),distance:this.memory.dist[this.location.y][this.location.x],way:0};
 		
+		this.operations.push(obj);
 		
-		this.calculatemin(this.location,this.memory.stack,this.memory.dist[this.location.y][this.location.x] , 0);
+		this.calculatemin();
 		
 		if(this.found==false)
 		{
 			//alert("yes");
 			this.selective=false;
-			this.calculatemin(this.location,this.memory.stack,this.memory.dist[this.location.y][this.location.x] , 0);
+			
+			this.operations.push(obj);
+			
+			this.calculatemin();
 		}
 
 		this.direction=0;
@@ -923,7 +997,7 @@ function raone(game)
 
 		//alert(this.memory.stack);
 		//alert( " ({total:"+this.total+"})");
-		$(".total").html(this.total);
+		$(".total").html(str);
 		
 		
 		
