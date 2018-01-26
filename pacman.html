@@ -424,6 +424,9 @@ function plot_class(game)
 		else if(direction == 4)
 		{
 			diffy= 1;
+		}else if(direction == 0)
+		{
+		
 		}
 		else{
 			alert("wrong direction : " + direction);
@@ -443,6 +446,7 @@ function plot_class(game)
 				if(!this.map[newlocation.y][newlocation.x])
 				{
 					thepacc.paused=false;
+					thepacc.selectpac.play();
 					var diff={x:diffx,y:diffy};
 					thepacc.currentdirection=direction;
 					
@@ -459,7 +463,11 @@ function plot_class(game)
 					}else if(thepacc.currentdirection == 4)
 					{
 						thepacc.selectpac.rotate(90);
-					}else{
+					}else if(thepacc.currentdirection == 0)
+					{
+					
+					}
+					else{
 						alert("error: direction out of bound")
 					}
 					
@@ -490,6 +498,8 @@ function plot_class(game)
 		else
 		{
 			//thepacc.currentdirection=0;
+
+			thepacc.selectpac.pause();
 			thepacc.paused=true;
 			thepacc.select.stop();
 			thepacc.init=true;	
@@ -591,6 +601,9 @@ function plot_class(game)
 				else if(direction == 4)
 				{
 					diffy= 1;
+				}else if(direction == 0)
+				{
+					
 				}
 				else{
 					alert("wrong direction : " + direction);
