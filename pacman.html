@@ -32,15 +32,18 @@ Pacman movement engine is working perfect :D
   <div class="graph"></div>
 </div>
 
+<div class="score"></div>
+
 <script>
 
 var svg = new SVG(document.querySelector(".graph")).size("100%", 600);
 
 
 
-function plot(size)
+function plot(game)
 {
-    this.size=size;
+	this.game=game;
+    this.size=this.game.size;
 	this.obst= [];
     this.map= [];
 	this.block=[];
@@ -116,9 +119,17 @@ function plot(size)
 			}
 			else
 			{
-				this.block[i][j]=svg.rect(pointsize,pointsize).move((i+0.5)*blocksize-(pointsize/2),(j+0.5)*blocksize-(pointsize/2)).fill("#00ffd2");
+				this.block[i][j]={taken:false,select:null};
+				this.block[i][j].select=svg.rect(pointsize,pointsize).move((i+0.5)*blocksize-(pointsize/2),(j+0.5)*blocksize-(pointsize/2)).fill("#00ffd2");
 			}
 		}
+	}
+	
+	if(this.map[this.game.pacman.location.x][this.game.pacman.location.y]==false)
+	{
+		//alert(this.plot.block[0][0]);
+		this.block[this.game.pacman.location.x][this.game.pacman.location.y].taken=true;
+		this.block[this.game.pacman.location.x][this.game.pacman.location.y].select.remove();
 	}
 	
 	}
@@ -204,10 +215,11 @@ function plot(size)
 }
 
 
-function pacman(plot)
+function pacman(game)
 {
+	this.game=game;
 	this.time=300;
-	this.plot=plot;
+	this.plot=this.game.plot;
 	this.paused=false; // not moving
 	this.init=true;
 	this.select=svg.circle(blocksize).x(0).y(0).fill("#ffff00").stroke("#000");
@@ -217,6 +229,8 @@ function pacman(plot)
 	this.currentdirection=0;
 	
 	//this.print=Math.floor(Math.random()*100);
+	
+	
 	
 	
 	/*this.move=function(e,that=this)
@@ -399,12 +413,33 @@ function pacman(plot)
 			that.location.x+=diff.x;
 			that.location.y+=diff.y;
 			that.select.animate(that.time).move((that.location.x)*blocksize,(that.location.y)*blocksize).after(function(){that.time=300;that.animator(that);});
-	
+			if(that.plot.block[that.location.x][that.location.y].taken==false)
+			{
+				that.plot.block[that.location.x][that.location.y].taken=true;
+				that.plot.block[that.location.x][that.location.y].select.animate(150).attr({width:0,height:0});
+				that.game.player.incscorebyone();
+			}
 	}
 
 }
 
-
+function player()
+{
+	this.score=0;
+	
+	this.incscorebyone = function()
+	{
+		this.score++;
+		
+		this.showscore();
+	}
+	this.showscore = function()
+	{
+		$(".score").html(this.score);
+		//alert("gotcha");
+	}
+	
+}
 
 function main()
 {
@@ -422,10 +457,14 @@ var config;
 size=config[0][1];
 blocksize=config[1][1];
 pointsize=config[2][1];
+this.pacx=config[3][1];
+this.pacy=config[4][1];
 	
-	this.plot = new plot(this.size);
+	this.player= new player();
 	
-	this.pacman = new pacman(this.plot);
+	this.plot = new plot(this);
+	
+	this.pacman = new pacman(this);
 	
 	
 	
