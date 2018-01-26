@@ -412,6 +412,13 @@ function pacman(game)
 		var diff=that.plot.canimove(that.location,that.movedirection,that);
 			that.location.x+=diff.x;
 			that.location.y+=diff.y;
+			
+			if(that.location.x==that.game.raone.location.x && that.location.y==that.game.raone.location.y)
+			{
+				alert("game over");
+				exit();
+			}
+			
 			that.select.animate(that.time).move((that.location.x)*blocksize,(that.location.y)*blocksize).after(function(){that.time=300;that.animator(that);});
 			if(that.plot.block[that.location.y][that.location.x].taken==false)
 			{
@@ -427,6 +434,7 @@ function pacman(game)
 function raone(game)
 {
 	this.game = game;
+	this.plot=this.game.plot;
 	this.target = this.game.pacman;
 	this.location = {x:this.game.width-1,y:this.game.height-1};
 	this.skip=false;        // if ( one way is found ..  all streigh - line recursion from that point is skipped) check V2.0 to see diffrence :D
@@ -437,8 +445,8 @@ function raone(game)
 	this.found=false;		// to check if selective flooding can find or not
 	this.selective=true;  // Selective flooding is on (if true)    //  is off and flooding is done (if false)
 	
-	
-	//this.select=svg.circle(blocksize).x(0).y(0).fill("#ffff00").stroke("red");
+	this.init=true;
+	this.select=svg.circle(blocksize).x(this.location.x*this.game.blocksize).y(this.location.y*this.game.blocksize).fill("red").stroke("#000");
 	
 	
 	/*
@@ -626,7 +634,7 @@ function raone(game)
 				{
 					if(raone.selective==true)
 					{
-						if(raone.location.x>raone.target.location.x)
+						if(raone.location.x > raone.target.location.x)
 						{
 							raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],1);
 						
@@ -814,18 +822,46 @@ function raone(game)
 		
 	}
 	
+	
+	this.animator = function(direction)
+	{
+			//alert(that.location.x);
+		var diff=this.plot.canimove(this.location,direction,this);
+			this.location.x+=diff.x;
+			this.location.y+=diff.y;
+			
+			if(this.location.x==this.game.pacman.location.x && this.location.y==this.game.pacman.location.y)
+			{
+				alert("game over");
+				exit();
+			}
+			
+			this.select.animate(300).move((this.location.x)*blocksize,(this.location.y)*blocksize).after(function(){raone.cpu();});
+			
+			/*if(that.plot.block[that.location.y][that.location.x].taken==false)
+			{
+				that.plot.block[that.location.y][that.location.x].taken=true;
+				that.plot.block[that.location.y][that.location.x].select.animate(150).attr({width:0,height:0});
+				that.game.player.incscorebyone();
+			}*/
+	}
+	
 	this.cpu = function()
 	{
-		this.memory = {stack:[],dist:null};
-		this.memory.dist = [];
-		for(var i=0;i<this.game.height;i++)
-		{
-			this.memory.dist[i]=[];
-			for(var j=0;j<this.game.width;j++)
+	
+		
+			this.init=false;
+			this.memory = {stack:[],dist:null};
+			this.memory.dist = [];
+			for(var i=0;i<this.game.height;i++)
 			{
-				this.memory.dist[i][j]=0;
+				this.memory.dist[i]=[];
+				for(var j=0;j<this.game.width;j++)
+				{
+					this.memory.dist[i][j]=0;
+				}
 			}
-		}
+			
 		
 		
 		this.calculatemin(this.location,this.memory.stack,this.memory.dist[this.location.y][this.location.x] , 0);
@@ -836,19 +872,44 @@ function raone(game)
 			this.selective=false;
 			this.calculatemin(this.location,this.memory.stack,this.memory.dist[this.location.y][this.location.x] , 0);
 		}
-		
+
+		var direction=0;
+		if(this.memory.stack[1].x - this.location.x == 1 && this.memory.stack[1].y - this.location.y == 0)
+		{
+			direction = 3;
+		}
+		else if(this.memory.stack[1].x - this.location.x == -1 && this.memory.stack[1].y - this.location.y == 0)
+		{
+			direction = 1;
+		}
+		else if(this.memory.stack[1].x - this.location.x == 0 && this.memory.stack[1].y - this.location.y == 1)
+		{
+			direction = 4;
+		}
+		else if(this.memory.stack[1].x - this.location.x == 0 && this.memory.stack[1].y - this.location.y == -1)
+		{
+			direction = 2;
+		}
+		else
+		{
+			alert("error");
+		}
+		this.animator(direction);
 		var str="";
 		this.memory.stack.forEach(function(node)
 		{
 			str+="-("+node.x+":"+node.y+")";
-			this.high=svg.rect(blocksize,blocksize).move(node.x*blocksize,node.y*blocksize).fill("yellow");
+			//this.high=svg.rect(blocksize,blocksize).move(node.x*blocksize,node.y*blocksize).fill("yellow");
 		});
 		
-		alert(this.memory.dist[this.target.location.y][this.target.location.x]+" moveto :"+ str + "   ({total:"+this.total+"})");
+		//alert(this.memory.dist[this.target.location.y][this.target.location.x]+" moveto :"+ str + "   ({total:"+this.total+"})");
+		
+		
 		
 		
 	}
 	
+
 	
 
 }
