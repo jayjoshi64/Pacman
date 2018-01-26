@@ -429,8 +429,10 @@ function raone(game)
 	this.game = game;
 	this.target = this.game.pacman;
 	this.location = {x:game.width-1,y:game.height-1};
+	this.skip=false;
+	this.skipx=-1;
+	this.skipy=-1;
 	this.total=0;
-	
 	
 	/*
 			WAY
@@ -574,6 +576,9 @@ function raone(game)
 			if(node.x == this.target.location.x && node.y == this.target.location.y)
 			{
 				//alert("done");
+				this.skip=true;
+				this.skipx=node.x;
+				this.skipy=node.y;
 				this.memory.stack=JSON.stringify(newstack);
 				this.memory.stack=JSON.parse(this.memory.stack);
 				return;
@@ -654,36 +659,93 @@ function raone(game)
 			}
 			
 			
+			
+			
 			if(way==0)
 			{
 				up();
-				right();
-				down();
-				left();
+				if(node.x!=this.skipx && node.y!=this.skipy)
+				{
+						this.skip=false;
+				}
+				if(this.skip==false)
+				{
+					right();
+					down();
+					left();
+				}
+				else
+				{
+					
+				}
 			}
 			else if(way==1)
 			{
 				left();
-				up();
-				down();
+				if(node.x!=this.skipx && node.y!=this.skipy)
+				{
+						this.skip=false;
+				}
+				if(this.skip==false)
+				{
+					up();
+					down();
+				}
+				else
+				{
+					
+				}
 			}
 			else if(way==2)
 			{
 				up();
-				left();
-				right();
+				if(node.x!=this.skipx && node.y!=this.skipy)
+				{
+						this.skip=false;
+				}
+				if(this.skip==false)
+				{
+					left();
+					right();
+				}
+				else
+				{
+					
+				}
 			}
 			else if(way==3)
 			{
 				right();
+				if(node.x!=this.skipx && node.y!=this.skipy)
+				{
+						this.skip=false;
+				}
+				if(this.skip==false)
+				{
 				up();
 				down();
+				}
+				else
+				{
+					
+				}
 			}
 			else if(way==4)
 			{
 				down();
-				left();
-				right();
+				if(node.x!=this.skipx && node.y!=this.skipy)
+				{
+						this.skip=false;
+				}
+				if(this.skip==false)
+				{
+					left();
+					right();
+				}
+				else
+				{
+					
+				}
 			}
 			else
 			{
@@ -719,7 +781,7 @@ function raone(game)
 			this.high=svg.rect(blocksize,blocksize).move(node.x*blocksize,node.y*blocksize).fill("yellow");
 		});
 		
-		alert(this.memory.dist[this.target.location.y][this.target.location.x]+" moveto :"+ str + "  ({total"+this.total+"})");
+		alert(this.memory.dist[this.target.location.y][this.target.location.x]+" moveto :"+ str + "   ({total:"+this.total+"})");
 		
 		
 	}
