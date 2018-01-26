@@ -45,7 +45,7 @@ var svg = new SVG(document.querySelector(".graph")).size("100%", 600);
 
 
 
-function plot(game)
+function plot_class(game)
 {
 	this.game=game;
     this.width=this.game.width;
@@ -368,7 +368,9 @@ function plot(game)
 	}
 	
 	
-	this.game.raone.cpu();
+	this.game.raone[0].cpu();
+	this.game.raone[1].cpu();
+	this.game.raone[2].cpu();
 	
 	}
 	
@@ -557,7 +559,7 @@ function plot(game)
 }
 
 
-function pacman(game)
+function pacman_class(game)
 {
 	this.game=game;
 	this.time=300;
@@ -767,21 +769,22 @@ function pacman(game)
 }
 
 
-function raone(location,game)
+function raone_class(location,game,id)
 {
+	
 	this.game = game;
 	this.map = this.game.plot;
 	this.target = game.pacman;
 	this.location = {x:location.x,y:location.y};
 	this.select=svg.circle(blocksize).x(this.location.x*this.game.blocksize).y(this.location.y*this.game.blocksize).fill("red").stroke("#000");
 		//alert("wow bro");
-	
 	this.cpu = function()
 	{
+	
 		var newnode = this.map.navigator(this,this.target);
 		this.location.x = newnode.x;
 		this.location.y = newnode.y;
-		this.select.animate(300).move((this.location.x)*blocksize,(this.location.y)*blocksize).after(function(){raone.cpu();});
+		this.select.animate(300).move((this.location.x)*blocksize,(this.location.y)*blocksize).after(function(){raone[id].cpu();});
 			
 	}
 	
@@ -807,8 +810,7 @@ function player()
 	
 }
 
-function main()
-{
+
 var config;
     $.ajax({
         type: "GET",
@@ -829,20 +831,21 @@ this.pacy=config[5][1];
 	
 	this.player= new player();
 	//askdj=new player();
-	this.plot = new plot(this);
+	this.plot = new plot_class(this);
 	
-	this.pacman = new pacman(this);
+	this.pacman = new pacman_class(this);
 	
-	this.raone = new raone({x:8,y:8},this);
+	this.raone = [];
+	this.raone.push(new raone_class({x:8,y:8},this,0));
 
-	this.newbie = new raone({x:9,y:9},this);
+	this.raone.push(new raone_class({x:7,y:8},this,1));
+	this.raone.push(new raone_class({x:7,y:8},this,2));
+	//this.raone= new raone_class({x:7,y:8},this);
+	//this.newbie = new raone({x:9,y:9},this);
 	//this.on2 = new raone({x:8,y:8},this);
 	//this.raone2 = new raone({x:9,y:8},this);
-}
 
 
-//game = new main();
-main();
 </script>
 
 
