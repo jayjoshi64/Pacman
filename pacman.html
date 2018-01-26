@@ -80,7 +80,7 @@ function plot_class(game)
 		this.memory[i]=[];
 		for(var j=0;j<this.width;j++)
 		{
-			this.block[i][j]=null;
+			this.block[i][j]=false;
 			this.memory[i][j]= {node:[]};
 			
 			
@@ -327,10 +327,166 @@ function plot_class(game)
 	
 	}
 	
+	this.getnode = function(node,direction)
+	{
+		var newnode = JSON.stringify(node);
+		newnode = JSON.parse(newnode);
+		
+		
+		if(direction == 3)
+		{
+			newnode.x++;
+		}
+		else if(direction==1)
+		{
+			newnode.x--;
+		}
+		else if(direction == 2)
+		{
+			newnode.y--;
+		}
+		else if(direction==4)
+		{
+			newnode.y++;
+		}
+		else{
+			return false;
+		}
+		
+		if(0<=newnode.x && newnode.x < this.width)
+			{
+				if(0<=newnode.y && newnode.y < this.height)
+				{
+					
+					if(this.map[newnode.y][newnode.x])
+					{
+						
+							return newnode;
+						
+						
+						
+						
+						
+					
+					}
+				}
+			}
+	
+		return false;
+	
+	}
+	
+	this.drawline = function(node,direction)
+	{
+		//alert(JSON.stringify(node));
+		if(direction == 3)
+		{
+			this.array += " "+(node.x*blocksize)+","+(node.y*blocksize)+" "+((node.x+1)*blocksize)+","+(node.y*blocksize)+"";
+		}
+		else if(direction == 1)
+		{
+			this.array += " "+((node.x+1)*blocksize)+","+((node.y+1)*blocksize)+" "+(node.x*blocksize)+","+((node.y+1)*blocksize)+"";
+		}
+		else if(direction == 2)
+		{
+			this.array += " "+((node.x)*blocksize)+","+((node.y+1)*blocksize)+" "+(node.x*blocksize)+","+(node.y*blocksize)+"";
+		}
+		else if(direction == 4)
+		{
+			this.array += " "+((node.x+1)*blocksize)+","+(node.y*blocksize)+" "+((node.x+1)*blocksize)+","+((node.y+1)*blocksize)+"";
+		}
+		else 
+		{
+			alert("plot.drawline error , direction out of bound");
+		}
+		//svg.polyline(this.array).stroke({ color: '#f06', width: 4});
+		//alert(JSON.stringify(node)+"  dire: "+direction);
+	}
+	
+	this.buildmap = function(start,node,direction,startdirection)
+	{
+		//alert(JSON.stringify(node));
+		
+		//this.drawline(node,direction);
+		
+		this.block[node.y][node.x] = true;
+		
+		var prev = direction - 1;
+		var next = direction + 1;
+		var back = direction + 2;
+		if(prev <= 0)
+		{
+			prev += 4;
+		}
+		if(next >=5)
+		{
+			next -= 4;
+		}
+		if(back >=5)
+		{
+			back -= 4;
+		}
+		
+		if(start.x == node.x && start.y == node.y)
+		{
+			if(this.getnode(node,4) == false || this.block[node.y+1][node.x] == true)
+			{
+				this.drawline(node,next);
+				return;
+			
+			}
+			else
+			{
+				this.buildmap(start,this.getnode(node,4),4,startdirection);
+				return;
+			}
+			this.drawline(node,next);
+				return;
+			
+		}
+		var newnode = null;
+		
+		if((newnode = this.getnode(node,prev)) != false)
+		{
+			this.drawline(newnode,prev);
+			//this.drawline(node,prev);
+			this.buildmap(start,newnode,prev,startdirection);
+		
+		}else
+		{
+			if((newnode = this.getnode(node,direction)) != false)
+			{
+				if(this.getnode(newnode,prev) ==false)
+				{
+					this.drawline(newnode,direction);
+				}
+				
+				this.buildmap(start,newnode,direction,startdirection);
+			}
+			else
+			{
+				if((newnode = this.getnode(node,next)) != false)
+				{
+					//this.drawline(newnode,direction);
+					this.drawline(newnode,next);
+					this.buildmap(start,newnode,next,startdirection);
+				}
+				else
+				{
+					this.drawline(node,next);
+					this.buildmap(start,node,back,startdirection);
+				}
+			}
+		
+		}
+	
+	
+	}
 	
 	this.load=function()
 	{
-	
+		
+		
 		for(var i=0;i<this.height;i++)
 		{
 			for(var j=0;j<this.width;j++)
@@ -362,6 +518,9 @@ function plot_class(game)
 		this.distance_vector();
 	
 	
+	
+	
+	
 	for(var i=0;i<this.height;i++)
 	{
 		for(var j=0;j<this.width;j++)
@@ -369,7 +528,56 @@ function plot_class(game)
 			if(this.loader[i][j]=="1")
 			{
 				//alert("gotcha");
-				this.block[i][j]=svg.rect((7/10)*blocksize,(7/10)*blocksize).move((j+0.15)*blocksize,(i+0.15)*blocksize).fill("black").stroke({color:"blue",width:3});
+				
+				if(this.block[i][j]==false)
+				{
+				
+					if(this.getnode({x:j,y:i},1)!=false && this.getnode({x:j,y:i},2)!=false && this.getnode({x:j,y:i},3)!=false && this.getnode({x:j,y:i},4)!=false)
+					{
+						this.block[i][j] = true;
+						continue;
+					}
+				
+				
+					this.array = ""+(j*blocksize)+","+(i*blocksize)+" "+((j+1)*blocksize)+","+((i)*blocksize)+"";
+					var newnode = null;
+					if((newnode = this.getnode({x:j,y:i},3)) != false)
+					{
+						//alert("going to left of ("+j+","+i+")");
+						this.array += " "+((j+1)*blocksize)+","+(i*blocksize)+" "+((j+2)*blocksize)+","+((i)*blocksize)+"";
+						this.buildmap({x:j,y:i},newnode,3,3);
+						svg.polyline(this.array).stroke({ color: 'blue', width: 3,alignment:'inner'});//.maskWith(svg.circle(1000));
+						
+						//alert(this.array);
+					}
+					else
+					{
+						if((newnode = this.getnode({x:j,y:i},4)) != false)
+						{
+							//alert("going to down of ("+j+","+i+")");
+							this.array = ""+((j+1)*blocksize)+","+(i*blocksize)+" "+((j+1)*blocksize)+","+((i+1)*blocksize)+"";
+							this.buildmap({x:j,y:i},newnode,4,4);
+							svg.polyline(this.array).stroke({ color: '#f06', width: 3,alignment:'outer'});
+							//alert(this.array);
+
+						}
+						else
+						{
+							if(this.getnode({x:j,y:i},2) == false)
+							{
+								this.block[i][j]=svg.rect(blocksize,blocksize).move((j)*blocksize,(i)*blocksize).fill("black").stroke({color:"blue",width:3});
+							}
+							
+						
+						}
+					}
+					
+					
+					
+				}
+				
+				
+				//this.block[i][j]=svg.rect((7/10)*blocksize,(7/10)*blocksize).move((j+0.15)*blocksize,(i+0.15)*blocksize).fill("black").stroke({color:"blue",width:3});
 			}
 			else if(this.loader[i][j]=="0")
 			{
