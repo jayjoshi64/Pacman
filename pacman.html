@@ -86,24 +86,24 @@ function plot(game)
 	this.load=function()
 	{
 		for(var i=0;i<this.size;i++)
-	{
-		for(var j=0;j<this.size;j++)
 		{
-			if(this.loader[i][j]=="1")
+			for(var j=0;j<this.size;j++)
 			{
-				//alert("gotcha");
-				this.map[i][j]=true;
-			}
-			else if(this.loader[i][j]=="0")
-			{
-				this.map[i][j]=false;
-			}
-			else
-			{
-				alert("error : expected 1/0 FOUND :" + this.loader[i][j]);
+				if(this.loader[i][j]=="1")
+				{
+					//alert("gotcha");
+					this.map[i][j]=true;
+				}
+				else if(this.loader[i][j]=="0")
+				{
+					this.map[i][j]=false;
+				}
+				else
+				{
+					alert("error : expected 1/0 FOUND :" + this.loader[i][j]);
+				}
 			}
 		}
-	}
 	
 	
 	
@@ -161,8 +161,10 @@ function plot(game)
 			alert("wrong direction : " + direction);
 		}
 		
+		
 		var newlocation = {x:location.x+diffx,y:location.y+diffy};
 		
+		//alert(newlocation.x);
 		
 		
 		if(0<=newlocation.x && newlocation.x < this.size)
@@ -224,7 +226,8 @@ function pacman(game)
 	this.init=true;
 	this.select=svg.circle(blocksize).x(0).y(0).fill("#ffff00").stroke("#000");
 	this.state=true; //TRUE -> alive   FALSE ->dead
-	this.location = {x:0,y:0};
+	this.location = {x:parseInt(this.game.pacx),y:parseInt(this.game.pacy)};
+	//alert(this.location.x + " : "+this.location.y);
 	this.movedirection=0;
 	this.currentdirection=0;
 	
@@ -389,9 +392,6 @@ function pacman(game)
 			}
 			
 			that.controller();		
-			
-			
-	
 	});
 	
 	this.controller = function()
@@ -401,14 +401,13 @@ function pacman(game)
 			this.init=false;
 			this.animator(this);
 		}
-		
 	}
 	
 	
 	
 	this.animator = function(that)
 	{
-			
+			//alert(that.location.x);
 		var diff=that.plot.canimove(that.location,that.movedirection,that);
 			that.location.x+=diff.x;
 			that.location.y+=diff.y;
