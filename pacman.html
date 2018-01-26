@@ -600,46 +600,70 @@ function plot_class(game)
 		}
 		
 		
-		
-		
-		
-		if(node.x == pacman.location.x && node.y == pacman.location.y)
-		{
-			if(pacman.power_on == false)
+		var checkit = function()
+		{		
+
+			var diffx = raone.select.x() - raone.target.select.x();
+			var diffy = raone.select.y() - raone.target.select.y();
+			
+			if(diffx < 0 )
 			{
-			
-				alert("game over");
-				pacman.animator = function(){};
-			
-				game.raone.forEach(function(obj){ obj.cpu= function(){}});
-			
+				diffx = diffx * (-1);
 			}
-			else
+			if(diffy < 0 )
 			{
-				
-				if(raone.newlife == false)
+				diffy = diffy * (-1);
+			}
+			
+			if(diffx < blocksize && diffy < blocksize)
+			{
+				if(pacman.power_on == false)
 				{
-/*					raone.select.remove();
-					game.raone[raone.id]=new raone_class(raone.initlocation,game,raone.id);
-					setTimeout(function(){game.raone[raone.id].cpu();},6000);
-					exit();
-*/
 				
-				}
-				else
-				{
 					alert("game over");
 					pacman.animator = function(){};
 				
 					game.raone.forEach(function(obj){ obj.cpu= function(){}});
-			
+				
+				}
+				else
+				{
+					
+					if(raone.newlife == false)
+					{
+	/*					raone.select.remove();
+						game.raone[raone.id]=new raone_class(raone.initlocation,game,raone.id);
+						setTimeout(function(){game.raone[raone.id].cpu();},6000);
+						exit();
+	*/
+					
+					}
+					else
+					{
+						alert("game over");
+						pacman.animator = function(){};
+					
+						game.raone.forEach(function(obj){ obj.cpu= function(){}});
+				
+					}
+					
+					
+					
 				}
 				
-				
-				
 			}
-			
 		}
+		
+		
+		checkit();
+		setTimeout(function(){checkit();},50);
+		setTimeout(function(){checkit();},100);
+		setTimeout(function(){checkit();},150);
+		
+		setTimeout(function(){checkit();},200);
+		
+		setTimeout(function(){checkit();},250);
+		
 		if(ismove)
 		{
 			return(node);
