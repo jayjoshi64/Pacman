@@ -484,7 +484,7 @@ function plot_class(game)
 	
 	
 	
-	this.navigator = function(raone,pacman)
+	this.navigator = function(raone,pacman,ismove)
 	{
 		
 		if(raone.random <= 0)
@@ -615,11 +615,11 @@ function plot_class(game)
 				
 				if(raone.newlife == false)
 				{
-					raone.select.remove();
+/*					raone.select.remove();
 					game.raone[raone.id]=new raone_class(raone.initlocation,game,raone.id);
 					setTimeout(function(){game.raone[raone.id].cpu();},6000);
 					exit();
-
+*/
 				
 				}
 				else
@@ -636,8 +636,10 @@ function plot_class(game)
 			}
 			
 		}
-		
-		return(node);
+		if(ismove)
+		{
+			return(node);
+		}
 		
 	
 	}
@@ -843,7 +845,8 @@ function pacman_class(game)
 			obj.time = 300;
 			obj.newlife = true;
 			obj.select.attr({fill:"red"});
-		});
+			obj.checkcol = function(){};
+	});
 	
 	
 	}
@@ -863,8 +866,39 @@ function pacman_class(game)
 			this.power_on = true;
 			this.game.raone.forEach(function(obj){
 				obj.time = 1000;
+				
 				obj.newlife = false;
 				obj.select.attr({fill:"cyan"});
+				obj.checkcol = function ()
+				{
+					setTimeout(function(){
+							//alert("lsadl");
+							if(obj.location.x == obj.target.location.x && obj.location.y == obj.target.location.y)
+							{
+								///asdkasdj
+								//alert("sadkj");
+								var temp;
+								var temp2 = obj.cpu;
+								temp = obj.id;
+								obj.select.remove();
+								obj.cpu = function(){};
+								game.raone[obj.id]=new raone_class(obj.initlocation,game,obj.id);
+								game.raone[temp].cpu = function(){};
+								setTimeout(function(){game.raone[temp].cpu= temp2;  game.raone[temp].cpu();},6000);
+								
+
+							}
+							//else if(obj.select.x() - obj.target.select.x() = 50 || obj.select.x() - obj.target.select.x() = -50)
+							else
+							{
+								obj.checkcol();
+							
+							}
+					
+					},100);
+				
+				}
+				obj.checkcol();
 			});
 		}
 		else
@@ -941,7 +975,14 @@ function raone_class(location,game,id)
 	this.cpu = function()
 	{
 	
-		var newnode = this.map.navigator(this,this.target);
+
+		var newnode = this.map.navigator(this,this.target,true);
+		
+		
+		
+		
+		
+		
 		this.location.x = newnode.x;
 		this.location.y = newnode.y;
 		this.select.animate(this.time).move((this.location.x)*blocksize,(this.location.y)*blocksize).after(function(){raone[id].cpu();});
