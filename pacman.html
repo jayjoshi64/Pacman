@@ -599,6 +599,10 @@ function plot_class(game)
 			alert("error Follow should be true/false , found :"+raone.follow);
 		}
 		
+		
+		
+		
+		
 		if(node.x == pacman.location.x && node.y == pacman.location.y)
 		{
 			if(pacman.power_on == false)
@@ -873,7 +877,19 @@ function pacman_class(game)
 				{
 					setTimeout(function(){
 							//alert("lsadl");
-							if(obj.location.x == obj.target.location.x && obj.location.y == obj.target.location.y)
+			
+							var diffx = obj.select.x() - obj.target.select.x();
+							var diffy = obj.select.y() - obj.target.select.y();
+							
+							if(diffx < 0 )
+							{
+								diffx = diffx * (-1);
+							}
+							if(diffy < 0 )
+							{
+								diffy = diffy * (-1);
+							}
+							if(diffx < blocksize && diffy < blocksize)
 							{
 								///asdkasdj
 								//alert("sadkj");
