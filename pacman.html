@@ -21,6 +21,7 @@ Pacman movement engine is working perfect :D
     <meta name="description" content="">
     <meta name="author" content="">
     <script src="js/svg.js"></script>
+	<script src="js/svg.pathmorphing.js"></script>
 	<script src="js/jquery.min.js"></script>
 	<script src="js/jquery.csv.min.js"></script>
 	
@@ -443,6 +444,29 @@ function plot_class(game)
 					thepacc.paused=false;
 					var diff={x:diffx,y:diffy};
 					thepacc.currentdirection=direction;
+					
+					if(thepacc.currentdirection == 1)
+					{
+						thepacc.selectpac.rotate(180);
+					
+					}else if (thepacc.currentdirection == 2)
+					{
+						thepacc.selectpac.rotate(270);
+					}else if (thepacc.currentdirection == 3)
+					{
+						thepacc.selectpac.rotate(0);
+					}else if(thepacc.currentdirection == 4)
+					{
+						thepacc.selectpac.rotate(90);
+					}else{
+						alert("error: direction out of bound")
+					}
+					
+					
+					
+					
+					
+					
 					return diff;
 				}
 			}
@@ -515,6 +539,8 @@ function plot_class(game)
 			var node = JSON.stringify( this.memory[raone.location.y][raone.location.x].node[pacman.location.y][pacman.location.x].from );
 			node = JSON.parse(node);
 			
+			
+			
 			raone.random--;
 		
 		}
@@ -585,6 +611,10 @@ function plot_class(game)
 						{
 							raone.currentdirection = direction;
 							raone.random--;
+							
+							//.move(15*blocksize/100,35*blocksize/100);
+							
+							
 							break;
 						}
 					}
@@ -615,7 +645,7 @@ function plot_class(game)
 				diffy = diffy * (-1);
 			}
 			
-			if(diffx < blocksize && diffy < blocksize)
+			if((diffx < blocksize/(Math.sqrt(2)) && diffy < blocksize/(Math.sqrt(2))) || (diffx < blocksize && diffy ==0 ) || (diffy < blocksize && diffx == 0) )
 			{
 				if(pacman.power_on == false)
 				{
@@ -684,7 +714,17 @@ function pacman_class(game)
 	this.plot=this.game.plot;
 	this.paused=false; // not moving
 	this.init=true;
-	this.select=svg.circle(blocksize).x(0).y(0).fill("#ffff00").stroke("#000");
+	
+	
+	//this.select=svg.circle(blocksize).x(0).y(0).fill("#ffff00").stroke("#000");
+	this.selectpac =  svg.path('M'+blocksize/2+' 0 A'+blocksize/2+' '+blocksize/2+' 0 1 0 '+blocksize/2+' 0 L 0 0 z').fill('yellow').stroke({ color: 'black', width: 1.7, linecap: 'round', linejoin: 'round' }).move(0,0);
+	this.selectpac.animate(300).plot('M'+(blocksize/2 *(3/4))+' '+(-blocksize/4)+' A'+blocksize/2+' '+blocksize/2+' 0 1 0 '+(blocksize/2 *(3/4))+' '+(blocksize/4)+' L 0 0 z').move(0,0).loop(true,true);
+		
+	this.select = svg.group();
+	
+	this.select.add(this.selectpac);
+
+	
 	this.state=true; //TRUE -> alive   FALSE ->dead
 	this.location = {x:parseInt(this.game.pacx),y:parseInt(this.game.pacy)};
 	//alert(this.location.x + " : "+this.location.y);
@@ -872,7 +912,7 @@ function pacman_class(game)
 			this.game.raone.forEach(function(obj){
 			obj.time = 300;
 			obj.newlife = true;
-			obj.select.attr({fill:"red"});
+			obj.border.attr({fill:"red"});
 			obj.checkcol = function(){};
 	});
 	
@@ -896,7 +936,7 @@ function pacman_class(game)
 				obj.time = 1000;
 				
 				obj.newlife = false;
-				obj.select.attr({fill:"cyan"});
+				obj.border.attr({fill:"cyan"});
 				obj.checkcol = function ()
 				{
 					setTimeout(function(){
@@ -913,7 +953,7 @@ function pacman_class(game)
 							{
 								diffy = diffy * (-1);
 							}
-							if(diffx < blocksize && diffy < blocksize)
+							if((diffx < blocksize/(Math.sqrt(2)) && diffy < blocksize/(Math.sqrt(2))) || (diffx < blocksize && diffy ==0 ) || (diffy < blocksize && diffx == 0) )
 							{
 								///asdkasdj
 								//alert("sadkj");
@@ -966,6 +1006,7 @@ function pacman_class(game)
 			
 			
 			that.select.animate(that.time).move((that.location.x)*blocksize,(that.location.y)*blocksize).after(function(){that.time=300;that.animator(that);});
+			
 			if(that.plot.block[that.location.y][that.location.x].taken==false)
 			{
 				if(that.plot.block[that.location.y][that.location.x].power==false)
@@ -1006,8 +1047,32 @@ function raone_class(location,game,id)
 	this.map = this.game.plot;
 	this.target = game.pacman;
 	this.location = {x:location.x,y:location.y};
+	
+	
 	//this.select=svg.circle(blocksize).x(this.location.x*this.game.blocksize).y(this.location.y*this.game.blocksize).fill("red").stroke("#000");
-	this.select = svg.image('img/ghost2.png', blocksize, blocksize).x(this.location.x*this.game.blocksize).y(this.location.y*this.game.blocksize);
+	//this.select = svg.image('img/gost2.jpg', blocksize, blocksize).x(this.location.x*this.game.blocksize).y(this.location.y*this.game.blocksize);
+	
+	
+	this.border = svg.path('M0 0 A'+(blocksize/2)+' '+(blocksize/2)+' 0 1 1 '+(blocksize)+' 0 v'+(blocksize/2)+' l'+(-3*blocksize/10)+' '+(-2*blocksize/10)+' l'+(-2*blocksize/10)+' '+(2*blocksize/10)+' l'+(-2*blocksize/10)+' '+(-2*blocksize/10)+' l'+(-3*blocksize/10)+' '+(2*blocksize/10)+' z');
+	this.border.fill('red');
+	this.border.stroke({ color: '#f06', width: 0, linecap: 'round', linejoin: 'round' }).y((blocksize/25));
+
+	this.select = svg.group();
+	this.select.add(this.border);
+	
+	this.lefteye = svg.circle((3*blocksize/10)).fill('white').move(15*blocksize/100,35*blocksize/100);
+	
+	this.righteye = svg.circle((3*blocksize/10)).fill('white').move(55*blocksize/100,35*blocksize/100);
+	
+	this.select.add(this.lefteye);
+	this.select.add(this.righteye);
+	//group.add(draw.circle(20).fill('blue').move(30,60))
+	this.select.x(this.location.x*this.game.blocksize).y(this.location.y*this.game.blocksize);
+	//group.animate(1000).move(100,0).loop(true,true);
+
+	
+	
+	
 	this.random = 0;
 	
 	this.newlife=true;
@@ -1021,6 +1086,31 @@ function raone_class(location,game,id)
 		
 		
 		
+			if(newnode.x - this.location.x == -1)
+			{
+				this.lefteye.move(5*blocksize/100,35*blocksize/100);
+				this.righteye.move(45*blocksize/100,35*blocksize/100);
+			}
+			else if(newnode.y - this.location.y == -1)
+			{
+				this.lefteye.move(15*blocksize/100,25*blocksize/100);
+				this.righteye.move(55*blocksize/100,25*blocksize/100);
+			}
+			else if(newnode.x - this.location.x == 1)
+			{
+				this.lefteye.move(25*blocksize/100,35*blocksize/100);
+				this.righteye.move(65*blocksize/100,35*blocksize/100);
+			}
+			else if(newnode.y - this.location.y == 1)
+			{
+				this.lefteye.move(15*blocksize/100,45*blocksize/100);
+				this.righteye.move(55*blocksize/100,45*blocksize/100);
+			
+			}else
+			{
+				alert("error, direction out of bound");
+			}
+							
 		
 		
 		
