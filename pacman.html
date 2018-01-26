@@ -43,15 +43,16 @@ var svg = new SVG(document.querySelector(".graph")).size("100%", 600);
 function plot(game)
 {
 	this.game=game;
-    this.size=this.game.size;
+    this.width=this.game.width;
+	this.height=this.game.height;
 	this.obst= [];
     this.map= [];
 	this.block=[];
-	for(var i=0;i<this.size;i++)
+	for(var i=0;i<this.height;i++)
 	{
 		this.map[i]=[];
 		this.block[i]=[];
-		for(var j=0;j<this.size;j++)
+		for(var j=0;j<this.width;j++)
 		{
 			this.block[i][j]=null;
 			if((i==2&&j==2) || (i==6&&j==6))
@@ -68,7 +69,7 @@ function plot(game)
 	
 	
 	
-	this.border= svg.rect(this.size*blocksize,this.size*blocksize).fill("#ffffff").stroke("#000");
+	this.border= svg.rect(this.width*blocksize,this.height*blocksize).fill("#ffffff").stroke("#000");
 	
 	that=this;
 	
@@ -85,9 +86,9 @@ function plot(game)
 	
 	this.load=function()
 	{
-		for(var i=0;i<this.size;i++)
+		for(var i=0;i<this.height;i++)
 		{
-			for(var j=0;j<this.size;j++)
+			for(var j=0;j<this.width;j++)
 			{
 				if(this.loader[i][j]=="1")
 				{
@@ -108,28 +109,28 @@ function plot(game)
 	
 	
 	
-	for(var i=0;i<this.size;i++)
+	for(var i=0;i<this.height;i++)
 	{
-		for(var j=0;j<this.size;j++)
+		for(var j=0;j<this.width;j++)
 		{
 			if(this.map[i][j]==true)
 			{
 				//alert("gotcha");
-				this.block[i][j]=svg.rect(blocksize,blocksize).move(i*blocksize,j*blocksize).fill("#000");
+				this.block[i][j]=svg.rect(blocksize,blocksize).move(j*blocksize,i*blocksize).fill("#000");
 			}
 			else
 			{
 				this.block[i][j]={taken:false,select:null};
-				this.block[i][j].select=svg.rect(pointsize,pointsize).move((i+0.5)*blocksize-(pointsize/2),(j+0.5)*blocksize-(pointsize/2)).fill("#00ffd2");
+				this.block[i][j].select=svg.rect(pointsize,pointsize).move((j+0.5)*blocksize-(pointsize/2),(i+0.5)*blocksize-(pointsize/2)).fill("#00ffd2");
 			}
 		}
 	}
 	
-	if(this.map[this.game.pacman.location.x][this.game.pacman.location.y]==false)
+	if(this.map[this.game.pacman.location.y][this.game.pacman.location.x]==false)
 	{
 		//alert(this.plot.block[0][0]);
-		this.block[this.game.pacman.location.x][this.game.pacman.location.y].taken=true;
-		this.block[this.game.pacman.location.x][this.game.pacman.location.y].select.remove();
+		this.block[this.game.pacman.location.y][this.game.pacman.location.x].taken=true;
+		this.block[this.game.pacman.location.y][this.game.pacman.location.x].select.remove();
 	}
 	
 	}
@@ -167,12 +168,12 @@ function plot(game)
 		//alert(newlocation.x);
 		
 		
-		if(0<=newlocation.x && newlocation.x < this.size)
+		if(0<=newlocation.x && newlocation.x < this.width)
 		{
-			if(0<=newlocation.y && newlocation.y < this.size)
+			if(0<=newlocation.y && newlocation.y < this.height)
 			{
 				
-				if(!this.map[newlocation.x][newlocation.y])
+				if(!this.map[newlocation.y][newlocation.x])
 				{
 					thepacc.paused=false;
 					var diff={x:diffx,y:diffy};
@@ -320,7 +321,7 @@ function pacman(game)
 				flag=true;
 				if(that.currentdirection==3)
 				{
-					that.backrun(that.movedirection);
+					that.backrun(that.currentdirection);
 					that.init=true;
 					that.select.stop();
 					
@@ -336,7 +337,7 @@ function pacman(game)
 				flag=true;
 				if(that.currentdirection==4)
 				{
-					that.backrun(that.movedirection);
+					that.backrun(that.currentdirection);
 					that.init=true;
 					that.select.stop();
 				}
@@ -352,7 +353,7 @@ function pacman(game)
 				if(that.currentdirection==1)
 				{
 					
-					that.backrun(that.movedirection);
+					that.backrun(that.currentdirection);
 					that.init=true;
 					that.select.stop();
 					
@@ -368,7 +369,7 @@ function pacman(game)
 				flag=true;
 				if(that.currentdirection==2)
 				{
-					that.backrun(that.movedirection);
+					that.backrun(that.currentdirection);
 					that.init=true;
 					that.select.stop();
 					
@@ -412,13 +413,37 @@ function pacman(game)
 			that.location.x+=diff.x;
 			that.location.y+=diff.y;
 			that.select.animate(that.time).move((that.location.x)*blocksize,(that.location.y)*blocksize).after(function(){that.time=300;that.animator(that);});
-			if(that.plot.block[that.location.x][that.location.y].taken==false)
+			if(that.plot.block[that.location.y][that.location.x].taken==false)
 			{
-				that.plot.block[that.location.x][that.location.y].taken=true;
-				that.plot.block[that.location.x][that.location.y].select.animate(150).attr({width:0,height:0});
+				that.plot.block[that.location.y][that.location.x].taken=true;
+				that.plot.block[that.location.y][that.location.x].select.animate(150).attr({width:0,height:0});
 				that.game.player.incscorebyone();
 			}
 	}
+
+}
+
+
+function raone(game)
+{
+	this.game = game;
+	this.target = game.pacman;
+	this.location = {x:game.width,y:game.width};
+	
+	this.findpath = function()
+	{
+		
+	
+	}
+	
+	this.nextmove= function()
+	{
+	
+	
+	
+	}
+	
+	
 
 }
 
@@ -453,11 +478,12 @@ var config;
 		}
 	 });
 
-size=config[0][1];
-blocksize=config[1][1];
-pointsize=config[2][1];
-this.pacx=config[3][1];
-this.pacy=config[4][1];
+width=config[0][1];
+height=config[1][1];
+blocksize=config[2][1];
+pointsize=config[3][1];
+this.pacx=config[4][1];
+this.pacy=config[5][1];
 	
 	this.player= new player();
 	
