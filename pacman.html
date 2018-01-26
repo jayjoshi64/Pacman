@@ -522,7 +522,6 @@ function plot_class(game)
 		else if(raone.follow == false)
 		{
 		
-			
 			var count = 0;
 			while(true)
 			{
@@ -602,11 +601,39 @@ function plot_class(game)
 		
 		if(node.x == pacman.location.x && node.y == pacman.location.y)
 		{
-			alert("game over");
-			pacman.animator = function(){};
+			if(pacman.power_on == false)
+			{
 			
-			game.raone.forEach(function(obj){ obj.cpu= function(){}});
+				alert("game over");
+				pacman.animator = function(){};
 			
+				game.raone.forEach(function(obj){ obj.cpu= function(){}});
+			
+			}
+			else
+			{
+				
+				if(raone.newlife == false)
+				{
+					raone.select.remove();
+					game.raone[raone.id]=new raone_class(raone.initlocation,game,raone.id);
+					setTimeout(function(){game.raone[raone.id].cpu();},6000);
+					exit();
+
+				
+				}
+				else
+				{
+					alert("game over");
+					pacman.animator = function(){};
+				
+					game.raone.forEach(function(obj){ obj.cpu= function(){}});
+			
+				}
+				
+				
+				
+			}
 			
 		}
 		
@@ -634,6 +661,8 @@ function pacman_class(game)
 	this.movedirection=0;
 	this.currentdirection=0;
 	
+	//this.power_countdown = 5;
+	this.power_on=false;
 	//this.print=Math.floor(Math.random()*100);
 	
 	
@@ -806,6 +835,50 @@ function pacman_class(game)
 			this.animator(this);
 		}
 	}
+	this.powerdown = function()
+	{
+		
+			this.power_on = false;
+			this.game.raone.forEach(function(obj){
+			obj.time = 300;
+			obj.newlife = true;
+			obj.select.attr({fill:"red"});
+		});
+	
+	
+	}
+	
+	this.powerdown_control = function()
+	{
+			this.powerdown();
+	}
+	
+
+	
+	this.powerup = function()
+	{
+		//alert("ok");
+		if(this.power_on == false)
+		{
+			this.power_on = true;
+			this.game.raone.forEach(function(obj){
+				obj.time = 1000;
+				obj.newlife = false;
+				obj.select.attr({fill:"cyan"});
+			});
+		}
+		else
+		{
+			this.powerdown_control = function()
+			{
+				setTimeout(function(){pacman.powerdown(); pacman.powerdown_control = function(){pacman.powerdown();}},10000);
+			}
+		
+		}
+		
+		setTimeout(function(){pacman.powerdown_control();},10000);
+	
+	}
 	
 	
 	
@@ -830,6 +903,9 @@ function pacman_class(game)
 				else if (that.plot.block[that.location.y][that.location.x].power==true)
 				{
 					//alert("power up");
+					
+					that.powerup();
+					
 					that.plot.block[that.location.y][that.location.x].taken=true;
 					that.plot.block[that.location.y][that.location.x].select.animate(150).attr({width:0,height:0});
 					
@@ -850,6 +926,7 @@ function pacman_class(game)
 function raone_class(location,game,id)
 {
 	
+	this.initlocation={x:location.x,y:location.y};
 	this.game = game;
 	this.id = id;
 	this.map = this.game.plot;
@@ -857,6 +934,9 @@ function raone_class(location,game,id)
 	this.location = {x:location.x,y:location.y};
 	this.select=svg.circle(blocksize).x(this.location.x*this.game.blocksize).y(this.location.y*this.game.blocksize).fill("red").stroke("#000");
 	this.random = 0;
+	
+	this.newlife=true;
+	this.time= 300;
 	this.follow=true;
 	this.cpu = function()
 	{
@@ -864,8 +944,8 @@ function raone_class(location,game,id)
 		var newnode = this.map.navigator(this,this.target);
 		this.location.x = newnode.x;
 		this.location.y = newnode.y;
-		this.select.animate(300).move((this.location.x)*blocksize,(this.location.y)*blocksize).after(function(){raone[id].cpu();});
-			
+		this.select.animate(this.time).move((this.location.x)*blocksize,(this.location.y)*blocksize).after(function(){raone[id].cpu();});
+		
 	}
 	
 	
@@ -919,12 +999,8 @@ this.pacy=config[5][1];
 	this.raone.push(new raone_class({x:8,y:8},this,0));
 
 	this.raone.push(new raone_class({x:7,y:8},this,1));
-	this.raone.push(new raone_class({x:7,y:8},this,2));
-	//this.raone= new raone_class({x:7,y:8},this);
-	//this.newbie = new raone({x:9,y:9},this);
-	//this.on2 = new raone({x:8,y:8},this);
-	//this.raone2 = new raone({x:9,y:8},this);
-
+	this.raone.push(new raone_class({x:7,y:7},this,2));
+	
 
 </script>
 
