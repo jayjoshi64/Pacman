@@ -34,6 +34,7 @@ Pacman movement engine is working perfect :D
 
 <div class="score"></div>
 
+<div class="total"></div>
 <script>
 
 var svg = new SVG(document.querySelector(".graph")).size("100%", 600);
@@ -846,6 +847,13 @@ function raone(game)
 			}*/
 	}
 	
+	this.run = function()
+	{
+	
+	
+	}
+	
+	
 	this.cpu = function()
 	{
 	
@@ -884,28 +892,28 @@ function raone(game)
 			this.calculatemin(this.location,this.memory.stack,this.memory.dist[this.location.y][this.location.x] , 0);
 		}
 
-		var direction=0;
+		this.direction=0;
 		if(this.memory.stack[1].x - this.location.x == 1 && this.memory.stack[1].y - this.location.y == 0)
 		{
-			direction = 3;
+			this.direction = 3;
 		}
 		else if(this.memory.stack[1].x - this.location.x == -1 && this.memory.stack[1].y - this.location.y == 0)
 		{
-			direction = 1;
+			this.direction = 1;
 		}
 		else if(this.memory.stack[1].x - this.location.x == 0 && this.memory.stack[1].y - this.location.y == 1)
 		{
-			direction = 4;
+			this.direction = 4;
 		}
 		else if(this.memory.stack[1].x - this.location.x == 0 && this.memory.stack[1].y - this.location.y == -1)
 		{
-			direction = 2;
+			this.direction = 2;
 		}
 		else
 		{
 			alert("error");
 		}
-		this.animator(direction);
+		this.animator(this.direction);
 		var str="";
 		this.memory.stack.forEach(function(node)
 		{
@@ -914,8 +922,8 @@ function raone(game)
 		});
 
 		//alert(this.memory.stack);
-		//alert(this.memory.dist[this.target.location.y][this.target.location.x]+" moveto :"+ str + "   ({total:"+this.total+"})");
-		
+		//alert( " ({total:"+this.total+"})");
+		$(".total").html(this.total);
 		
 		
 		
