@@ -428,11 +428,18 @@ function raone(game)
 {
 	this.game = game;
 	this.target = this.game.pacman;
-	this.location = {x:game.width-1,y:game.height-1};
-	this.skip=false;
+	this.location = {x:this.game.width-1,y:this.game.height-1};
+	this.skip=false;        // if ( one way is found ..  all streigh - line recursion from that point is skipped) check V2.0 to see diffrence :D
 	this.skipx=-1;
 	this.skipy=-1;
-	this.total=0;
+	this.total=0;  			// count of recursion
+
+	this.found=false;		// to check if selective flooding can find or not
+	this.selective=true;  // Selective flooding is on (if true)    //  is off and flooding is done (if false)
+	
+	
+	//this.select=svg.circle(blocksize).x(0).y(0).fill("#ffff00").stroke("red");
+	
 	
 	/*
 			WAY
@@ -470,7 +477,7 @@ function raone(game)
 			waystring="init";
 		}
 		this.high=svg.rect(blocksize,blocksize).move(node.x*blocksize,node.y*blocksize).fill("yellow");
-		//alert(node.x+":"+node.y + "   ["+distance+"]  ["+waystring+"]");
+		alert(node.x+":"+node.y + "   ["+distance+"]  ["+waystring+"]");
 		this.high.remove();
 		*/
 		var flag=false;
@@ -497,7 +504,7 @@ function raone(game)
 		else if(this.memory.dist[node.y][node.x] == distance + 1)
 		{
 		
-			//alert("ailaa");
+			
 			var diffx = this.location.x - this.target.location.x;
 			if(diffx < 0)
 			{
@@ -508,6 +515,8 @@ function raone(game)
 			{
 				diffy = diffy * (-1);
 			}
+			
+			
 			
 			if(diffx > diffy)
 			{
@@ -543,6 +552,7 @@ function raone(game)
 			}
 			else if(diffx == diffy)
 			{
+				
 				if(Math.floor(Math.random() * 2) == 0)
 				{
 					flag=true;
@@ -576,6 +586,7 @@ function raone(game)
 			if(node.x == this.target.location.x && node.y == this.target.location.y)
 			{
 				//alert("done");
+				this.found=true;
 				this.skip=true;
 				this.skipx=node.x;
 				this.skipy=node.y;
@@ -613,9 +624,22 @@ function raone(game)
 				newnode.x = newnode.x -1;
 				if(check(newnode))
 				{
+					if(raone.selective==true)
+					{
+						if(raone.location.x>raone.target.location.x)
+						{
+							raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],1);
+						
+						}
+					}
+					else
+					{
+						raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],1);
+					}
 					
 					
-					raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],1);
+					
+					
 				}
 			}
 			var up = function()
@@ -625,12 +649,21 @@ function raone(game)
 			
 				
 				newnode.y = newnode.y -1;
-				//alert(node.x+" : "+node.y + " vs. " + newnode.x + " : "+newnode.y);
+				
 				if(check(newnode))
 				{
-					
-					//alert("in("+node.x+":"+node.y+") calculatemin(newnode,newstack,"+raone.memory.dist[node.y][node.x]+",way);");
-					raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],2);
+					if(raone.selective==true)
+					{
+						if(raone.location.y > raone.target.location.y)
+						{
+							raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],2);
+						}
+					}
+					else
+					{
+						
+						raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],2);
+					}
 				}
 			}
 			
@@ -642,7 +675,19 @@ function raone(game)
 				newnode.x = newnode.x +1;
 				if(check(newnode))
 				{
-					raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],3);
+					if(raone.selective==true)
+					{
+						if(raone.location.x<raone.target.location.x)
+						{
+							raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],3);
+						}
+					}
+					else
+					{
+						
+						raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],3);
+					
+					}
 				}
 			}
 
@@ -654,7 +699,17 @@ function raone(game)
 				newnode.y = newnode.y +1;
 				if(check(newnode))
 				{
-					raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],4);
+					if(raone.selective==true)
+					{
+						if(raone.location.y<raone.target.location.y)
+						{
+							raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],4);
+						}
+					}
+					else
+					{
+						raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],4);
+					}
 				}
 			}
 			
@@ -774,6 +829,14 @@ function raone(game)
 		
 		
 		this.calculatemin(this.location,this.memory.stack,this.memory.dist[this.location.y][this.location.x] , 0);
+		
+		if(this.found==false)
+		{
+			//alert("yes");
+			this.selective=false;
+			this.calculatemin(this.location,this.memory.stack,this.memory.dist[this.location.y][this.location.x] , 0);
+		}
+		
 		var str="";
 		this.memory.stack.forEach(function(node)
 		{
@@ -796,7 +859,7 @@ function player()
 	
 	this.incscorebyone = function()
 	{
-		this.score++;
+			this.score++;
 		
 		this.showscore();
 	}
