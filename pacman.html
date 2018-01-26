@@ -225,9 +225,9 @@ function pacman(game)
 	this.plot=this.game.plot;
 	this.paused=false; // not moving
 	this.init=true;
-	this.select=svg.circle(blocksize).x(0).y(0).fill("#ffff00").stroke("#000");
 	this.state=true; //TRUE -> alive   FALSE ->dead
 	this.location = {x:parseInt(this.game.pacx),y:parseInt(this.game.pacy)};
+	this.select=svg.circle(blocksize).x(this.location.x*blocksize).y(this.location.y*blocksize).fill("#ffff00").stroke("#000");
 	//alert(this.location.x + " : "+this.location.y);
 	this.movedirection=0;
 	this.currentdirection=0;
@@ -436,7 +436,7 @@ function raone(game)
 	this.game = game;
 	this.plot=this.game.plot;
 	this.target = this.game.pacman;
-	this.location = {x:this.game.width-1,y:this.game.height-1};
+	this.location = {x:this.game.width-1,y:0};
 	this.skip=false;        // if ( one way is found ..  all streigh - line recursion from that point is skipped) check V2.0 to see diffrence :D
 	this.skipx=-1;
 	this.skipy=-1;
@@ -853,6 +853,17 @@ function raone(game)
 			this.init=false;
 			this.memory = {stack:[],dist:null};
 			this.memory.dist = [];
+			
+			
+			this.skip=false;        // if ( one way is found ..  all streigh - line recursion from that point is skipped) check V2.0 to see diffrence :D
+			this.skipx=-1;
+			this.skipy=-1;
+			this.total=0;  			// count of recursion
+
+			this.found=false;		// to check if selective flooding can find or not
+			this.selective=true;  // Selective flooding is on (if true)    //  is off and flooding is done (if false)
+			
+			
 			for(var i=0;i<this.game.height;i++)
 			{
 				this.memory.dist[i]=[];
@@ -901,7 +912,8 @@ function raone(game)
 			str+="-("+node.x+":"+node.y+")";
 			//this.high=svg.rect(blocksize,blocksize).move(node.x*blocksize,node.y*blocksize).fill("yellow");
 		});
-		
+
+		//alert(this.memory.stack);
 		//alert(this.memory.dist[this.target.location.y][this.target.location.x]+" moveto :"+ str + "   ({total:"+this.total+"})");
 		
 		
