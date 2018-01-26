@@ -427,20 +427,301 @@ function pacman(game)
 function raone(game)
 {
 	this.game = game;
-	this.target = game.pacman;
-	this.location = {x:game.width,y:game.width};
+	this.target = this.game.pacman;
+	this.location = {x:game.width-1,y:game.height-1};
+	this.total=0;
 	
-	this.findpath = function()
+	
+	/*
+			WAY
+			----------
+			0 - > Start * Should go to all 4 directions
+			1 - > Left
+			2 - > UP
+			3 - > Right
+			4 - > Down
+			----------
+	*/
+	
+	this.calculatemin = function(node,stack,distance,way)
 	{
+		this.total++;
+		/*
+		var waystring="";
+		if(way==1)
+		{
+			waystring="left";
+		}
+		else if(way==2)
+		{
+			waystring="up";
+		}
+		else if(way==3)
+		{
+			waystring="right";
+		}
+		else if(way==4)
+		{
+			waystring="down";
+		}
+		else{
+			waystring="init";
+		}
+		this.high=svg.rect(blocksize,blocksize).move(node.x*blocksize,node.y*blocksize).fill("yellow");
+		//alert(node.x+":"+node.y + "   ["+distance+"]  ["+waystring+"]");
+		this.high.remove();
+		*/
+		var flag=false;
+		if(this.memory.dist[node.y][node.x] == 0)
+		{
+			this.memory.dist[node.y][node.x]  = distance + 1;
+			//alert(this.memory.dist[node.y][node.x]+" : "+raone.memory.dist[node.y][node.x])
+			flag=true;
+		}
+		else if(this.memory.dist[node.y][node.x] > distance + 1)
+		{
 		
-	
+			this.memory.dist[node.y][node.x]  = distance + 1;
+			flag=true;
+		
+		}
+		else if(this.memory.dist[node.y][node.x] < distance + 1)
+		{
+			//alert(node.x + " : "+node.y  + " -> " + distance + " (way:"+way+")");
+			
+			return;
+			
+		}
+		else if(this.memory.dist[node.y][node.x] == distance + 1)
+		{
+		
+			//alert("ailaa");
+			var diffx = this.location.x - this.target.location.x;
+			if(diffx < 0)
+			{
+				diffx = diffx * (-1);
+			}
+			var diffy = this.location.y - this.target.location.y;
+			if(diffy < 0)
+			{
+				diffy = diffy * (-1);
+			}
+			
+			if(diffx > diffy)
+			{
+				var tempnode = stack[stack.length - 1];
+				if(tempnode.x - node.x == 1 || tempnode.x - node.x == -1)
+				{
+					flag =false;
+				}
+				else if(tempnode.y - node.y == 1 || tempnode.y - node.y == -1)
+				{
+					flag=true;
+				}
+				else
+				{
+					alert("error : stack(last) : node   - doesnt match");
+				}
+			}
+			else if(diffx < diffy)
+			{
+				var tempnode = stack[stack.length - 1];
+				if(tempnode.x - node.x == 1 || tempnode.x - node.x == -1)
+				{
+					flag =true;
+				}
+				else if(tempnode.y - node.y == 1 || tempnode.y - node.y == -1)
+				{
+					flag=false;
+				}
+				else
+				{
+					alert("error : stack(last) : node   - doesnt match");
+				}
+			}
+			else if(diffx == diffy)
+			{
+				if(Math.floor(Math.random() * 2) == 0)
+				{
+					flag=true;
+				}
+				else
+				{
+					flag=false;
+				}
+			}
+			else
+			{
+				alert("error  inpossible error");
+			}
+		
+		}else
+		{
+			alert("wow");
+		}
+		
+		var newstack = JSON.stringify(stack);
+		newstack = JSON.parse(newstack);
+		
+		//newstack.add(true);
+		//alert(newstack.length);
+		
+		if(flag==true)
+		{
+			
+			newstack.push(node);
+			
+			if(node.x == this.target.location.x && node.y == this.target.location.y)
+			{
+				//alert("done");
+				this.memory.stack=JSON.stringify(newstack);
+				this.memory.stack=JSON.parse(this.memory.stack);
+				return;
+			}
+			
+			
+		//	this.memory.dist[node.y][node.x];
+			var check = function(newnode)
+			{
+				
+				if(0<=newnode.x && newnode.x < raone.game.width)
+				{
+					if(0<=newnode.y && newnode.y < raone.game.height)
+					{
+						
+						if(!raone.game.plot.map[newnode.y][newnode.x])
+						{
+							return true;
+						}
+					}
+				}
+				return false;
+				
+			}
+		
+			var left = function()
+			{
+				var newnode = JSON.stringify(node);
+				newnode = JSON.parse(newnode);
+			
+				
+				newnode.x = newnode.x -1;
+				if(check(newnode))
+				{
+					
+					
+					raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],1);
+				}
+			}
+			var up = function()
+			{
+				var newnode = JSON.stringify(node);
+				newnode = JSON.parse(newnode);
+			
+				
+				newnode.y = newnode.y -1;
+				//alert(node.x+" : "+node.y + " vs. " + newnode.x + " : "+newnode.y);
+				if(check(newnode))
+				{
+					
+					//alert("in("+node.x+":"+node.y+") calculatemin(newnode,newstack,"+raone.memory.dist[node.y][node.x]+",way);");
+					raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],2);
+				}
+			}
+			
+			var right = function()
+			{
+				var newnode = JSON.stringify(node);
+				newnode = JSON.parse(newnode);
+			
+				newnode.x = newnode.x +1;
+				if(check(newnode))
+				{
+					raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],3);
+				}
+			}
+
+			var down = function()
+			{
+				var newnode = JSON.stringify(node);
+				newnode = JSON.parse(newnode);
+			
+				newnode.y = newnode.y +1;
+				if(check(newnode))
+				{
+					raone.calculatemin(newnode,newstack,raone.memory.dist[node.y][node.x],4);
+				}
+			}
+			
+			
+			if(way==0)
+			{
+				up();
+				right();
+				down();
+				left();
+			}
+			else if(way==1)
+			{
+				left();
+				up();
+				down();
+			}
+			else if(way==2)
+			{
+				up();
+				left();
+				right();
+			}
+			else if(way==3)
+			{
+				right();
+				up();
+				down();
+			}
+			else if(way==4)
+			{
+				down();
+				left();
+				right();
+			}
+			else
+			{
+				alert("error : unexpected way, should be 0<=way<=4");
+			}
+			
+		
+		
+		}
+		
+		
 	}
 	
-	this.nextmove= function()
+	this.cpu = function()
 	{
-	
-	
-	
+		this.memory = {stack:[],dist:null};
+		this.memory.dist = [];
+		for(var i=0;i<this.game.height;i++)
+		{
+			this.memory.dist[i]=[];
+			for(var j=0;j<this.game.width;j++)
+			{
+				this.memory.dist[i][j]=0;
+			}
+		}
+		
+		
+		this.calculatemin(this.location,this.memory.stack,this.memory.dist[this.location.y][this.location.x] , 0);
+		var str="";
+		this.memory.stack.forEach(function(node)
+		{
+			str+="-("+node.x+":"+node.y+")";
+			this.high=svg.rect(blocksize,blocksize).move(node.x*blocksize,node.y*blocksize).fill("yellow");
+		});
+		
+		alert(this.memory.dist[this.target.location.y][this.target.location.x]+" moveto :"+ str + "  ({total"+this.total+"})");
+		
+		
 	}
 	
 	
@@ -491,8 +772,10 @@ this.pacy=config[5][1];
 	
 	this.pacman = new pacman(this);
 	
+	this.raone = new raone(this);
 	
 	
+	this.raone.cpu();
 }
 
 
