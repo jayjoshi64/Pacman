@@ -11,7 +11,9 @@ A Graphical classic game with Javascript and svg
 - Undoubtadly Pacman has PowerUps. By which pacman can take over to the ghosts.
 
 **ScreenShot:**
+
 ![ScreentShot](img/screenshot.jpg?raw=true "Pacman")
+
 
 **Todo:**
 - I will upload the ERD of the pacman
