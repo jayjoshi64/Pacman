@@ -59,79 +59,54 @@ function plot_class(game)
 	this.game=game;
     this.width=this.game.width;
 	this.height=this.game.height;
-	this.obst= [];
     this.map= [];
 	this.block=[];
-	
 	this.memory = [];
-	
 	this.operations=[];
-	
 	this.power = [];
-	
 	this.total=0;
 	this.totalscore = 0;
 	this.error=0;
-	this.wayyer=0;
-	for(var i=0;i<this.height;i++)
-	{
-		this.map[i]=[];
-		this.block[i]=[];
-		this.memory[i]=[];
-		for(var j=0;j<this.width;j++)
-		{
-			this.block[i][j]=false;
-			this.memory[i][j]= {node:[]};
-			
-			
-			for(var k=0;k<this.height;k++)
-			{
-				this.memory[i][j].node[k] = [];
-				for(var z=0;z<this.width;z++)
-				{
-					this.memory[i][j].node[k][z]={dist:9999, from:null,from2:null};
+	
+	// Shapes and stuff
+	this.border= svg.rect(this.width*blocksize,this.height*blocksize).fill("#000").stroke({color:"blue",width:4});
+
+	this.init_empty_map = function() {
+		for(var i=0; i<this.height; i++) {
+			this.map[i]=[];
+			this.block[i]=[];
+			this.memory[i]=[];
+			for(var j=0;j<this.width;j++) {
+				this.block[i][j]=false;
+				this.memory[i][j]= {node:[]};
+
+				// Create 4D memory object 
+				for(var k=0;k<this.height;k++) {
+					this.memory[i][j].node[k] = [];
+					for(var z=0;z<this.width;z++) {
+						this.memory[i][j].node[k][z]={dist:9999, from:null, from2:null};
+					}
 				}
-			}
-			
-			if((i==2&&j==2) || (i==6&&j==6))
-			{
-				this.map[i][j]=true;
-				
-			}
-			else
-			{
-			this.map[i][j]=false;
+				// if((i==2&&j==2) || (i==6&&j==6)) {
+				// 	this.map[i][j]=true;
+				// } else {
+				// 	this.map[i][j]=false;
+				// }
 			}
 		}
 	}
 	
+	this.init_empty_map();
+	let that=this;
 	
-	
-	this.border= svg.rect(this.width*blocksize,this.height*blocksize).fill("#000").stroke({color:"blue",width:4});
-	
-	that=this;
-	
-	
-	
-	
-    $.ajax({
-        type: "GET",
-        url: "data.txt",
-        dataType: "text",
-        success: function(data) {
+    $.get("http://localhost:5000/data",
+		function(data, status) {
 			that.loader=$.csv.toArrays(data);
 			that.load();
-		}
-	 });
-	 
-	
-	 
-	 this.init_flood = function(node)
-	{
-	
-		
-		var floodme = function()
-		{
+		});
+
+	 this.init_flood = function(node) {
+		var floodme = function(){
 			
 			var obj = plot.operations.shift();
 			var node=obj.data;
@@ -140,36 +115,17 @@ function plot_class(game)
 			var from = obj.node;
 			
 			plot.total++;
-			//$(".total").html(plot.total);
-					
-			
-			//alert(this.total);
-			
-		
-			if(from!=null)
-			{
-			/*
-			this.high=svg.rect(blocksize,blocksize).move(to.x*blocksize,to.y*blocksize).fill("yellow");
-			this.highfr=svg.rect(blocksize,blocksize).move(from.x*blocksize,from.y*blocksize).fill("cyan");
-			alert(node.x+":"+node.y + "   ["+distance+"]  ["+JSON.stringify(plot.operations)+"]");
-			this.high.remove();
-			this.highfr.remove();
-			*/
+			if(from!=null) {
+
 				if(distance < plot.memory[to.y][to.x].node[node.y][node.x].dist)
 				{
 					plot.memory[to.y][to.x].node[node.y][node.x].dist = distance;
 					plot.memory[to.y][to.x].node[node.y][node.x].from = from;
-			
-					
-			
+
 					left(node,distance+1,to);
 					right(node,distance+1,to);
 					up(node,distance+1,to);
 					down(node,distance+1,to);
-					
-			
-					
-					
 				}
 				else if(distance == plot.memory[to.y][to.x].node[node.y][node.x].dist)
 				{
@@ -177,51 +133,36 @@ function plot_class(game)
 					{
 						plot.memory[to.y][to.x].node[node.y][node.x].from2 = from;
 					}
-						
-				
 				}
 				else
 				{
 					plot.error++;
-					//$(".error").html(plot.error);
-					
 				}
 			}
 			else
 			{
 				plot.memory[to.y][to.x].node[node.y][node.x].dist = distance;
 				plot.memory[to.y][to.x].node[node.y][node.x].from = from;
-					
 			}
-			
-			
 			if(plot.operations.length>0)
 			{
 				floodme();
 			}
-			
 		}
 	
-		var check = function(newnode)
-			{
-				
-				if(0<=newnode.x && newnode.x < plot.width)
-				{
-					if(0<=newnode.y && newnode.y < plot.height)
-					{
-						
-						if(!plot.map[newnode.y][newnode.x])
-						{
-							return true;
-						}
+		var check = function(newnode) {
+			// CHeck whether going to this newnode is possible or not 
+			if(0<=newnode.x && newnode.x < plot.width) {
+				if(0<=newnode.y && newnode.y < plot.height) {
+					// Check if the x & y has no wall
+					if(!plot.map[newnode.y][newnode.x]) {
+						return true;
 					}
 				}
-				
-				return false;
-				
 			}
-		
-	
+			return false;
+		}
+			
 		var left =function(data,distance,node)
 		{
 			var newnode = JSON.stringify(node);
@@ -298,33 +239,11 @@ function plot_class(game)
 				if(this.map[i][j]==false)
 				{
 					var node = {x:j,y:i};
-					// alert("uep");
 					this.init_flood(node);
 				}
 			}
 			
 		}
-		
-		var str="";
-		
-		for(var i=0;i<this.height;i++)
-		{
-			for(var j=0;j<this.height;j++)
-			{
-				if(this.memory[0][0].node[i][j].from != null)
-				{
-					str += "("+this.memory[0][0].node[i][j] .from.y + ":"+this.memory[0][0].node[i][j].from.x+")";
-				}
-				else
-				{
-					str+="(+,+)";
-				}
-			}
-			str+=" \n";
-		}
-		
-		//alert(str);
-	
 	}
 	
 	this.getnode = function(node,direction)
@@ -1041,7 +960,7 @@ function pacman_class(game)
 	}
 	
 	
-	$(document).on("keypress",function(e,that=pacman)
+	$(document).on("keydown",function(e,that=pacman)
 	{
 			
 			that.time=300;
@@ -1401,39 +1320,31 @@ function player()
 	
 }
 
-
-var config;
-    $.ajax({
-        type: "GET",
-        url: "config.txt",
-        dataType: "text",
-		async: false,
-        success: function(data) {
-			config=$.csv.toArrays(data);
-		}
-	 });
-
-width=config[0][1];
-height=config[1][1];
-blocksize=config[2][1];
-pointsize=config[3][1];
-this.pacx=config[4][1];
-this.pacy=config[5][1];
-	
-	var gameover = false;
+var gameover;
+function start_game(config){
+	width=config[0][1];
+	height=config[1][1];
+	blocksize=config[2][1];
+	pointsize=config[3][1];
+	this.pacx=config[4][1];
+	this.pacy=config[5][1];
+	gameover = false;
 	
 	this.player= new player();
-	//askdj=new player();
-	this.plot = new plot_class(this);
-	
+	this.plot = new plot_class(this);	
 	this.pacman = new pacman_class(this);
-	
 	this.raone = [];
 	this.raone.push(new raone_class({x:8,y:8},this,0,'orange'));
-
 	this.raone.push(new raone_class({x:7,y:8},this,1,'	#ff54fc'));
 	this.raone.push(new raone_class({x:7,y:7},this,2,'red'));
-	
+}
+
+$.get( "http://localhost:5000/config", function(data, status) {
+		var config;
+		config=$.csv.toArrays(data);
+		start_game(config);
+});
+
 
 </script>
 
