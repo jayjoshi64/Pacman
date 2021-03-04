@@ -16,6 +16,6 @@ A Graphical classic game with Javascript and svg
 
 
 **Todo:**
-- I will upload the ERD of the pacman
-- I will comment out the code in order to make it easy to understand
-- I will reformat the code. Make it more uncoupled and reusable.
+- Upload the ERD of the pacman
+- Comment out the code in order to make it easy to understand
+- Reformat the code. Make it more uncoupled and reusable.
